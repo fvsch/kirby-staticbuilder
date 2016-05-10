@@ -21,7 +21,6 @@ Perhaps working, perhaps broken:
 
 -   Generate all pages by navigating to
     `staticbuilder/site`
-    (it )
 
 
 ## Roadmap
