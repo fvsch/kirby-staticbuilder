@@ -26,9 +26,7 @@ Perhaps working, perhaps broken:
 
 ## Roadmap
 
-Things I’d like to include:
+See:
 
-- [ ] Copy page files
-- [ ] Make it a tiny bit reliable when building many pages. Maybe split the workload in some way?
-- [ ] CLI usage (e.g. `php site/plugins/staticbuilder/cli.php [parameters]`)
-- [ ] Authentication, maybe? (Right now there is none and it’s not intended to be enabled on a live site! That would be a massive denial-of-service risk!)
+-   https://github.com/fvsch/kirby-staticbuilder/labels/roadmap
+-   https://github.com/fvsch/kirby-staticbuilder/labels/maybe
