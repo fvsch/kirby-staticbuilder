@@ -1,3 +1,11 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Kirby StaticBuilder</title>
+</head>
+<body>
+
 <?php
 function prettySize($bytes=null) {
 	if ($bytes == null) return '';
@@ -9,7 +17,7 @@ $showIgnored = c::get('plugin.staticbuilder.showignored', false);
 ?>
 
 <?php if ($error): ?>
-	<p class="error"><?php echo $message; ?></p>
+	<p class="error"><?php echo $error; ?></p>
 <?php else: ?>
 
 <?php if ($confirm == false): ?>
@@ -27,7 +35,7 @@ $showIgnored = c::get('plugin.staticbuilder.showignored', false);
 		</tr>
 	</thead>
 	<tbody>
-	<?php foreach($pageinfo as $info): ?>
+	<?php foreach($summary as $info): ?>
 		<?php if ($info['ignored']): ?>
 			<?php if ($showIgnored): ?>
 			<tr class="pageinfo skipped">
@@ -59,3 +67,6 @@ $showIgnored = c::get('plugin.staticbuilder.showignored', false);
 </table>
 
 <?php endif ?>
+
+</body>
+</html>

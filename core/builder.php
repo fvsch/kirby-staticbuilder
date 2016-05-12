@@ -3,13 +3,9 @@
 namespace Kirby\Plugin\StaticBuilder;
 
 use C;
-use Dir;
 use Exception;
 use F;
-use Kirby;
 use Page;
-use R;
-use Tpl;
 
 
 /**
@@ -74,7 +70,7 @@ class Builder {
 		$info['ignored'] = false;
 		$info['dest'] = $page->uri() . $this->suffix;
 		if ($write) {
-			$text = $this->kirby->render($page);
+			$text = $this->kirby->render($page, [], false);
 			$info['bytes'] = strlen($text);
 			f::write($this->folder . DS . $info['dest'], $text);
 		}
@@ -105,54 +101,4 @@ class Builder {
 		return $info;
 	}
 
-}
-
-
-/**
- * Kirby router action that 
- * @return bool
- */
-function siteAction() {
-	$confirm = r::is('POST') and r::get('confirm');
-	$data = [
-		'error' => false,
-		'confirm' => $confirm,
-		'pageinfo' => []
-	];
-	$builder = new Builder();
-	$data['pageinfo'] = $builder->rebuild($confirm);
-
-	// Render info page
-	tpl::$data = $data;
-	echo tpl::load(__DIR__ . DS . 'template.php');
-	return false;
-}
-
-/**
- * 
- * @param $uri
- * @return bool
- */
-function pageAction($uri) {
-	$page = page($uri);
-	$confirm = r::is('POST') and r::get('confirm');
-	$data = [
-		'error' => false,
-		'confirm' => $confirm,
-		'pages' => [],
-		'folder' => null
-	];
-	if (!$page) {
-		$data['error'] = "Error: Cannot find page for '$uri'";
-	}
-	else {
-		$builder = new Builder();
-		$data['folder'] = $builder->folder;
-		$data['pageinfo'][] = $builder->page($page, $confirm);
-	}
-
-	// Render info page
-	tpl::$data = $data;
-	echo tpl::load(__DIR__ . DS . 'template.php');
-	return false;
 }

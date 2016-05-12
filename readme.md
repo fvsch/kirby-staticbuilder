@@ -3,6 +3,7 @@ StaticBuilder Plugin for Kirby CMS
 
 **Work in progress!** Plugin that tries to convert your Kirby CMS site to static files (HTML, assets, etc.).
 
+
 ## Installation
 
 *   Requires Kirby 2.3 (currently in beta)!
