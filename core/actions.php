@@ -16,9 +16,8 @@ function siteAction() {
 	$confirm = r::is('POST') and r::get('confirm');
 
 	$builder = new Builder();
-	if ($confirm) $builder->dryrun($site);
-	else $builder->write($site);
-
+	if ($confirm) $builder->write($site);
+	else $builder->dryrun($site);
 	$data = [
 		'error'   => false,
 		'confirm' => $confirm,
