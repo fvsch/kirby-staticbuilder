@@ -3,7 +3,6 @@
 namespace Kirby\Plugin\StaticBuilder;
 
 use C;
-use Dir;
 use Exception;
 use F;
 use Folder;
@@ -107,7 +106,7 @@ class Builder {
 		$log = [
 			'type'  => 'page',
 			'name'  => $page->title()->value,
-			'dest'  => $page->uri() . $this->suffix,
+			'dest'  => $uri . $this->suffix,
 			'files' => [],
 			'done'  => false,
 			'size'  => null

@@ -3,6 +3,7 @@
 namespace Kirby\Plugin\StaticBuilder;
 
 use R;
+use Response;
 use Tpl;
 
 
@@ -24,10 +25,7 @@ function siteAction() {
 		'folder'  => $builder->info('folder'),
 		'summary' => $builder->info('summary')
 	];
-
-	// Render info page
-	echo tpl::load(__DIR__ . DS . '..' . DS . 'templates' . DS . 'html.php', $data);
-	return false;
+	return htmlReport($data);
 }
 
 /**
@@ -45,7 +43,7 @@ function pageAction($uri) {
 		'summary' => []
 	];
 	if (!$page) {
-		$data['error'] = "Error: Cannot find page for '$uri'";
+		$data['error'] = "Error: Cannot find page for \"$uri\"";
 	}
 	else {
 		$builder = new Builder();
@@ -54,8 +52,19 @@ function pageAction($uri) {
 		$data['folder']  = $builder->info('folder');
 		$data['summary'] = $builder->info('summary');
 	}
+	return htmlReport($data);
+}
 
-	// Render info page
-	echo tpl::load(__DIR__ . DS . '..' . DS . 'templates' . DS . 'html.php', $data);
-	return false;
+/**
+ * Render the HTML report page
+ *
+ * @param array $data
+ * @return Response
+ */
+function htmlReport($data) {
+	// Forcefully remove headers that might have been set by some
+	// templates, controllers or plugins when rendering pages.
+	header_remove();
+	$body = tpl::load(__DIR__ . DS . '..' . DS . 'templates' . DS . 'html.php', $data);
+	return new Response($body, 'html', $data['error'] ? 500 : 200);
 }
