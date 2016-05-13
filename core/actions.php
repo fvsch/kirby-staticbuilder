@@ -7,17 +7,23 @@ use Tpl;
 
 
 /**
- * Kirby router action that
+ * Kirby router action that lists all pages to build and files to copy,
+ * and performs the actual build on user confirmation.
  * @return bool
  */
 function siteAction() {
+	$site = site();
 	$confirm = r::is('POST') and r::get('confirm');
+
 	$builder = new Builder();
+	if ($confirm) $builder->dryrun($site);
+	else $builder->write($site);
+
 	$data = [
 		'error'   => false,
 		'confirm' => $confirm,
-		'folder'  => $builder->folder,
-		'summary' => $builder->rebuild($confirm)
+		'folder'  => $builder->info('folder'),
+		'summary' => $builder->info('summary')
 	];
 
 	// Render info page
@@ -26,7 +32,7 @@ function siteAction() {
 }
 
 /**
- *
+ * Similar to siteAction but for a single page.
  * @param $uri
  * @return bool
  */
@@ -44,8 +50,10 @@ function pageAction($uri) {
 	}
 	else {
 		$builder = new Builder();
-		$data['folder']  = $builder->folder;
-		$data['summary'] = [$builder->page($page, $confirm)];
+		if ($confirm) $builder->write($page);
+		else $builder->dryrun($page);
+		$data['folder']  = $builder->info('folder');
+		$data['summary'] = $builder->info('summary');
 	}
 
 	// Render info page
