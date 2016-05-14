@@ -1,0 +1,148 @@
+body {
+    padding: 20px;
+    max-width: 1120px;
+    margin: 0 auto;
+    font-family: sans-serif;
+    line-height: 1.3;
+}
+h2 {
+    margin: .75em 0 0;
+    font-size: 120%;
+}
+p {
+    line-height: 1.5;
+}
+@media (max-width: 1000px) {
+    body { font-size: 90%; }
+}
+header {
+    margin: 20px 0 40px;
+}
+header h1 {
+    margin: 0;
+    text-transform: lowercase;
+}
+header p {
+    margin-bottom: 0;
+}
+header .error {
+    color: red;
+}
+header form {
+    margin-top: 20px;
+}
+.header-btn {
+    padding: .5em 1em;
+    border: solid 2px transparent;
+    border-radius: .2em;
+    font-weight: bold;
+    font-family: inherit;
+    font-size: 130%;
+    cursor: pointer;
+    white-space: nowrap;
+    text-transform: lowercase;
+    color: black;
+    background-color: white;
+}
+a.header-btn {
+    text-decoration: underline;
+}
+a.header-btn:hover,
+a.header-btn:focus {
+    color: #2a91a8;
+}
+button.header-btn {
+    border-color: currentColor;
+}
+button.header-btn:hover,
+button.header-btn:focus {
+    color: red;
+}
+@media (min-width:800px) {
+    header {
+        display: table;
+        width: 100%;
+        margin-top: 30px;
+    }
+    .header-col {
+        display: table-cell;
+        vertical-align: middle;
+    }
+    .header-col--side {
+        margin: 0;
+        padding-left: 40px;
+        text-align: right;
+    }
+}
+.error-msg {
+    margin: 40px 0;
+    padding: 10px 20px;
+    border: solid 1px red;
+}
+.error-msg h2 code {
+    display: inline-block;
+    padding: .15em .3em;
+    border: solid 1px #ddd;
+    border-radius: 4px;
+    font-size: 90%;
+    background-color: #f4f4f4;
+}
+.pages {
+    margin: 40px 0;
+    border: solid 1px gray;
+    border-collapse: collapse;
+    font-size: 90%;
+}
+.pages .short {
+    width: 8%;
+    min-width: 60px;
+}
+.pages .shorter {
+    width: 5%;
+    min-width: 40px;
+}
+.pages code {
+    font-family: monospace, monospace;
+    font-size: 85%;
+}
+.pages th,
+.pages td {
+    border: solid 1px #ccc;
+    padding: 3px 5px;
+    text-align: left;
+}
+.pages tr > :nth-child(1n+4) {
+    text-align: center;
+}
+.pages tr {
+    background-color: #f4f8fA;
+}
+.pages tbody > :nth-child(2n+1) {
+    background-color: #fff;
+}
+@media (min-width:800px) {
+    .pages {
+        table-layout: fixed;
+        width: 100%;
+    }
+    .pages th,
+    .pages td {
+        padding: 5px 10px;
+    }
+}
+.skipped {
+    margin: 40px 0;
+    border: solid 1px #ccc;
+    padding: 10px 20px;
+}
+
+.skipped-info {
+    font-size: 85%;
+}
+@media (min-width:800px) {
+    .skipped-info {
+        float: right;
+        width: 300px;
+        margin: 0 0 50px 50px;
+    }
+}

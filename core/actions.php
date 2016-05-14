@@ -4,7 +4,6 @@ namespace Kirby\Plugin\StaticBuilder;
 
 use R;
 use Response;
-use Tpl;
 
 
 /**
@@ -14,18 +13,21 @@ use Tpl;
  */
 function siteAction() {
 	$site = site();
+	$builder = new Builder();
 	$confirm = r::is('POST') and r::get('confirm');
 
-	$builder = new Builder();
 	if ($confirm) $builder->write($site);
 	else $builder->dryrun($site);
+
 	$data = [
+		'mode'    => 'site',
 		'error'   => false,
 		'confirm' => $confirm,
 		'folder'  => $builder->info('folder'),
-		'summary' => $builder->info('summary')
+		'summary' => $builder->info('summary'),
+		'skipped' => $builder->info('skipped')
 	];
-	return htmlReport($data);
+	return $builder->htmlReport($data);
 }
 
 /**
@@ -35,8 +37,10 @@ function siteAction() {
  */
 function pageAction($uri) {
 	$page = page($uri);
+	$builder = new Builder();
 	$confirm = r::is('POST') and r::get('confirm');
 	$data = [
+		'mode'    => 'page',
 		'error'   => false,
 		'confirm' => $confirm,
 		'folder'  => null,
@@ -46,25 +50,19 @@ function pageAction($uri) {
 		$data['error'] = "Error: Cannot find page for \"$uri\"";
 	}
 	else {
-		$builder = new Builder();
 		if ($confirm) $builder->write($page);
 		else $builder->dryrun($page);
 		$data['folder']  = $builder->info('folder');
 		$data['summary'] = $builder->info('summary');
+		$data['skipped'] = $builder->info('skipped');
 	}
-	return htmlReport($data);
+	return $builder->htmlReport($data);
 }
 
 /**
- * Render the HTML report page
- *
- * @param array $data
- * @return Response
+ * Serve CSS file for report page
  */
-function htmlReport($data) {
-	// Forcefully remove headers that might have been set by some
-	// templates, controllers or plugins when rendering pages.
-	header_remove();
-	$body = tpl::load(__DIR__ . DS . '..' . DS . 'templates' . DS . 'html.php', $data);
-	return new Response($body, 'html', $data['error'] ? 500 : 200);
+function cssAction() {
+	$css = file_get_contents(__DIR__ . DS . '..' . DS . 'assets' . DS . 'report.css');
+	return new Response($css, 'css');
 }

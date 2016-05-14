@@ -23,4 +23,9 @@ if (c::get('plugin.staticbuilder.enabled', false)) {
 		'method'  => 'GET|POST'
 	]);
 
+	$kirby->set('route', [
+		'pattern' => 'staticbuilder/report.css',
+		'action'  => 'Kirby\Plugin\StaticBuilder\cssAction'
+	]);
+
 }
