@@ -226,7 +226,7 @@ class Builder {
 			*/
 
 			// Render page
-			$text = $this->kirby->render($page, $data, false);
+			$text = $this->kirby->render($page, [], false);
 			$log['size'] = strlen($text);
 
 			// Write page content
