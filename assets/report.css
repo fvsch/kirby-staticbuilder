@@ -93,56 +93,38 @@ button.header-btn:focus {
     border-collapse: collapse;
     font-size: 90%;
 }
-.pages .short {
-    width: 8%;
-    min-width: 60px;
-}
-.pages .shorter {
-    width: 5%;
-    min-width: 40px;
-}
-.pages code {
-    font-family: monospace, monospace;
-    font-size: 85%;
-}
-.pages th,
-.pages td {
-    border: solid 1px #ccc;
-    padding: 3px 5px;
-    text-align: left;
-}
-.pages tr > :nth-child(1n+4) {
-    text-align: center;
-}
 .pages tr {
     background-color: #f4f8fA;
 }
 .pages tbody > :nth-child(2n+1) {
     background-color: #fff;
 }
+.pages th,
+.pages td {
+    border: solid 1px #ccc;
+    padding: 3px 5px;
+    text-align: left;
+    height: 2.5em;
+}
+.pages .short {
+    width: 12%;
+    min-width: 80px;
+}
+.pages .shorter {
+    width: 6%;
+    min-width: 60px;
+}
+.pages code {
+    font-family: monospace, monospace;
+    font-size: 85%;
+}
+
 @media (min-width:800px) {
     .pages {
-        table-layout: fixed;
         width: 100%;
     }
     .pages th,
     .pages td {
         padding: 5px 10px;
-    }
-}
-.skipped {
-    margin: 40px 0;
-    border: solid 1px #ccc;
-    padding: 10px 20px;
-}
-
-.skipped-info {
-    font-size: 85%;
-}
-@media (min-width:800px) {
-    .skipped-info {
-        float: right;
-        width: 300px;
-        margin: 0 0 50px 50px;
     }
 }

@@ -12,7 +12,7 @@ if (c::get('plugin.staticbuilder.enabled', false)) {
 	require_once __DIR__ . DS . 'core' . DS . 'actions.php';
 
 	$kirby->set('route', [
-		'pattern' => 'staticbuilder/site',
+		'pattern' => 'staticbuilder',
 		'action'  => 'Kirby\Plugin\StaticBuilder\siteAction',
 		'method'  => 'GET|POST'
 	]);

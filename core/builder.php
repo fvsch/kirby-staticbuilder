@@ -9,7 +9,6 @@ use Folder;
 use Page;
 use Pages;
 use Response;
-use Silo;
 use Site;
 use Tpl;
 
@@ -24,71 +23,83 @@ class Builder {
 
 	protected $kirby;
 
-	// Config
+	// Defaults for 'plugin.staticbuilder.folder'
+	static $defaultFolder = 'static';
+	// Defaults for 'plugin.staticbuilder.assets'
+	static $defaultAssets = ['assets', 'content', 'thumbs'];
+	// Defaults for 'plugin.staticbuilder.suffix'
+	static $defaultSuffix = '/index.html';
+
+	// Resolved config
 	protected $index;
 	protected $folder;
 	protected $suffix;
-	protected $assets;
 	protected $filter;
-
-	// Storing results
-	protected $summary;
-	protected $skipped;
-	protected $lastpage;
+	protected $assets;
 
 	// Callable for PHP Errors
 	public $shutdown;
+	public $lastpage;
 
+	// Storing results
+	public $summary = [];
+
+	/**
+	 * Builder constructor.
+	 * Resolve config and stuff.
+	 * @throws Exception
+	 */
 	public function __construct() {
-		$kirby  = kirby();
+		$this->kirby = kirby();
 
-		// Get config
-		$static = $kirby->roots()->index . DS . 'static';
-		$folder = c::get('plugin.staticbuilder.folder', $static);
-		$suffix = c::get('plugin.staticbuilder.suffix', DS . 'index.html');
-		$filter = c::get('plugin.staticbuilder.filter');
-		$assets = c::get('plugin.staticbuilder.assets', ['assets', 'content', 'thumbs']);
+		// Source folder
+		$this->index = $this->kirby->roots()->index;
 
-		// Validate folder path and suffix
-		$folder = $this->normalizePath($folder);
-		$suffix = $this->normalizePath($suffix);
-
-		// Validate folder
-		$folder = new Folder($folder);
+		// Ouptut folder (should be called 'static', created and writable)
+		$folder = c::get('plugin.staticbuilder.folder', static::$defaultFolder);
+		if ($this->isAbsolutePath($folder) == false) {
+			$folder = $this->index . DS . $folder;
+		}
+		$folder = new Folder($this->normalizePath($folder));
 		if ($folder->name() !== 'static') {
-			throw new Exception('StaticBuilder: destination folder can have any path but the folder name MUST be "static". Configured name was: "' . $folder->name() . '".');
+			throw new Exception('StaticBuilder: destination folder may have any path but the folder name MUST be "static". Configured name was: "' . $folder->name() . '".');
 		}
 		if ($folder->exists() === false) $folder->create();
 		if ($folder->isWritable() === false) {
 			throw new Exception('StaticBuilder: destination folder is not writeable.');
 		}
+		$this->folder = $folder->root();
 
-		$this->kirby   = $kirby;
-		$this->index   = $kirby->roots()->index;
-		$this->folder  = $folder->root();
-		$this->suffix  = $suffix;
-		$this->filter  = is_callable($filter) ? $filter : null;
-		$this->assets  = $assets;
-		$this->skipped = [];
-		$this->summary = new Silo();
+		// Suffix for output pages
+		$suffix = c::get('plugin.staticbuilder.suffix', static::$defaultSuffix);
+		$this->suffix = $this->normalizePath($suffix);
+
+		// Filter for pages to build or ignore
+		$this->filter = null;
+		if (is_callable($filter = c::get('plugin.staticbuilder.filter'))) {
+			$this->filter = $filter;
+		}
+
+		// Normalize assets config
+		$assetConf = c::get('plugin.staticbuilder.assets', static::$defaultAssets);
+		$assets = [];
+		foreach ($assetConf as $a) {
+			if (is_string($a)) $assets[$a] = $a;
+			elseif (is_array($a) and count($a) > 1)
+				$assets[array_shift($a)] = array_shift($a);
+		}
+		$this->assets = $assets;
 	}
 
 	/**
-	 * Try to render any PHP Fatal Error in our own template
-	 * @return bool
+	 * Figure out if a filesystem path is absolute or if we should treat
+	 * it as relative (to the project folder or output folder).
+	 * @param string $path
+	 * @return boolean
 	 */
-	protected function showFatalError() {
-		$error =  error_get_last();
-		// Check if last error is of type FATAL
-		if (isset($error['type']) && $error['type'] == E_ERROR) {
-			echo $this->htmlReport([
-				'error' => 'Error while building pages',
-				'summary' => $this->info('summary'),
-				'lastPage' => $this->lastpage,
-				'errorDetails' => $error['message'] . "<br>\n"
- 					. 'In ' . $error['file'] . ', line ' . $error['line']
-			]);
-		}
+	protected function isAbsolutePath($path) {
+		$pattern = '/^([\/\\\]|[a-z]:)/i';
+		return preg_match($pattern, $path) == 1;
 	}
 
 	/**
@@ -129,128 +140,181 @@ class Builder {
 	}
 
 	/**
+	 * Check that the destination path is somewhere we can write to
+	 * @param string $absolutePath
+	 * @return boolean
+	 */
+	protected function filterPath($absolutePath) {
+		// Be careful to use strict comparison (false == 0 is true)
+		return strpos($absolutePath, $this->folder . DS) === 0;
+	}
+
+	/**
 	 * Write the HTML for a page and copy its files
 	 * @param Page $page
 	 * @param bool $write Should we write files or just report info (dry-run).
-	 * @param bool $flush Should we empty the page’s target folder?
+	 * @return array
 	 */
-	protected function buildPage(Page $page, $write=false, $flush=false) {
+	protected function buildPage(Page $page, $write=false) {
+		$log = [
+			'type'   => 'page',
+			'status' => '',
+			'reason' => '',
+			'source' => 'content/' . $page->diruri(),
+			'dest'   => 'static/',
+			'size'   => null,
+			// Specific to pages
+			'title'  => $page->title()->value,
+			'uri'    => $page->uri(),
+			'files'  => [],
+		];
+		$folder = $this->normalizePath( $this->folder . DS . $page->uri() );
+		$file   = $page->isHomePage() ? 'index.html' : $page->uri() . DS . $this->suffix;
+		$target = $this->normalizePath( $this->folder . DS . $file);
+		$log['dest'] .= str_replace($this->folder . DS, '', $target);
 
+		// Check if we will build this page and report why not
 		if ($this->filterPage($page) == false) {
-			$this->skipped[] = $page->uri();
-			return;
+			$log['status'] = 'ignore';
+			if ($this->filter == null) $log['reason'] = 'Page has no text file';
+			else $log['reason'] = 'Excluded by custom filter';
+			return $this->summary[] = $log;
 		}
-		$root   = $this->folder;
-		$folder = $this->normalizePath( $root . DS . $page->uri() );
-		$file   = $this->normalizePath( $root . DS . $page->uri() . DS . $this->suffix );
-		$files  = [];
-		$size   = null;
-		$status = '';
+		// This one may happen if the page file suffix tries to go up the dir structure
+		elseif ($this->filterPath($target) == false) {
+			$log['status'] = 'ignore';
+			$log['reason'] = 'Output path for page goes outside of static directory';
+		}
 
-		// Never ever write outside of the static folder!
-		// TODO: implement check
-
-		// Is content file newer than existing file?
+		// Not writing
 		if ($write == false) {
-			if (!file_exists($file)) {
-				$status = 'missing';
-			}
-			elseif (filemtime($file) < $page->modified()) {
-				$status = 'outdated';
+			// Get status of output path
+			if (is_file($target)) {
+				$outdated = filemtime($target) < $page->modified();
+				$log['status'] = $outdated ? 'outdated' : 'uptodate';
+				$log['size'] = filesize($target);
 			}
 			else {
-				$status = 'uptodate';
+				$log['status'] = 'missing';
 			}
+			// Get number of files
+			$log['files'] = $page->files()->count();
 		}
 		else {
 			// Store reference to this page in case there's a fatal error
-			$this->lastpage = $page->uri();
-			// Render page
-			$text = $this->kirby->render($page, [], false);
-			$size = strlen($text);
+			$this->lastpage = $log['source'];
+			
+			// Mark page as active
+			$this->kirby->site()->visit($page->uri());
 
-			// Empty destination of page files
-			// (only do it if building 1 page)
-			if ($flush) (new Folder($folder))->flush();
+			// FIXME: controller only runs once?
+			// For instance if I have a posts.php controller, its results
+			// seems to be cached and reused for all other pages of the
+			// same type. Building a single page doesn't show this problem.
+
+			// Tried calling the controller every time but it doesn't seem to work?
+			/*
+			$controller = $this->kirby->get('controller', $page->template());
+			$data = [];
+			if (is_callable($controller)) {
+				$data = call_user_func($controller,
+					$this->kirby->site(),
+					$this->kirby->site()->children(),
+					$page);
+				if (!is_array($data)) $data = [];
+			}
+			*/
+
+			// Render page
+			$text = $this->kirby->render($page, $data, false);
+			$log['size'] = strlen($text);
 
 			// Write page content
-			f::write($file, $text);
-			$status = 'generated';
+			f::write($target, $text);
+			$log['status'] = 'generated';
 
 			// Copy page files in a folder
 			foreach ($page->files() as $file) {
 				$filedest = $folder . DS . $file->filename();
 				$file->copy($filedest);
-				$log['files'][] = str_replace($root . DS, '', $filedest);
+				$log['files'][] = 'static/' . str_replace($this->folder . DS, '', $filedest);
 			}
 		}
-
-		$this->summary->set( $page->uri(), [
-			'type'   => 'page',
-			'uri'    => $page->uri(),
-			'url'    => $page->url(),
-			'status' => $status,
-			'name'   => $page->title()->value,
-			'dest'   => str_replace($root . DS, '', $file),
-			'files'  => $files,
-			'size'   => $size,
-		]);
+		return $this->summary[] = $log;
 	}
 
 	/**
 	 * Copy a file or folder to the static directory
+	 * This function is responsible for normalizing paths and making sure
+	 * we don't write files outside of the static directory.
+	 *
 	 * @param string $from Source file or folder
 	 * @param string $to Destination path
-	 * @return bool
+	 * @param bool $write Should we write files or just report info (dry-run).
+	 * @return array|boolean
 	 * @throws Exception
 	 */
-	protected function copyAsset($from=null, $to=null) {
-		if (!is_string($from) or !is_string($to)) return false;
-		$from = $this->normalizePath($from);
-		$to = $this->normalizePath($to);
-		if (strpos($to, '..') !== false) {
-			throw new Exception('StaticBuilder: Error in assets definition. The ".." fragment must not appear in destination path "' . $to . '".');
+	protected function copyAsset($from=null, $to=null, $write=false) {
+		if (!is_string($from) or !is_string($to)) {
+			return false;
 		}
-		$info = [
-			'type'   => 'file',
-			'name'   => basename($from),
-			'dest'   => $to,
+		$log = [
+			'type'   => 'asset',
 			'status' => '',
+			'reason' => '',
+			// Use unnormalized, relative paths in log, because they
+			// might help understand why a file was ignored
+			'source' => $from,
+			'dest'   => 'static/',
 			'size'   => null
 		];
-		$source = $this->index . DS . $from;
-		$target = $this->folder . DS . $to;
 
+		// Source can be absolute
+		if ($this->isAbsolutePath($from)) {
+			$source = $from;
+		} else {
+			$source = $this->normalizePath($this->index . DS . $from);
+		}
+
+		// But target is always relative to static dir
+		$target = $this->normalizePath($this->folder . DS . $to);
+		if ($this->filterPath($target) == false) {
+			$log['status'] = 'ignore';
+			$log['reason'] = 'Cannot copy asset outside of the static folder';
+			return $this->summary[] = $log;
+		}
+		$log['dest'] .= str_replace($this->folder . DS, '', $target);
+
+		// Get type of asset
 		if (is_dir($source)) {
-			$info['type'] = 'folder';
-			// TODO: copy folder, perhaps flushing or removing an existing copy
+			$log['type'] = 'folder';
 		}
 		elseif (is_file($source)) {
-			// TODO: copy file, perhaps removing an existing copy beforehand
+			$log['type'] = 'file';
 		}
-		$this->summary->set($from, $info);
-		return true;
+		else {
+			$log['status'] = 'ignore';
+			$log['reason'] = 'Source file or folder not found';
+		}
+
+		// Copy a folder
+		if ($write && $log['type'] == 'folder') {
+			$source = new Folder($source);
+			$existing = new Folder($target);
+			if ($existing->exists()) $existing->remove();
+			$log['status'] = $source->copy($target) ? 'done' : 'failed';
+		}
+
+		// Copy a file
+		if ($write && $log['type'] == 'file') {
+			$log['status'] = copy($source, $target) ? 'done' : 'failed';
+		}
+
+		return $this->summary[] = $log;
 	}
 
 	/**
-	 * Normalize assets/folder paths and call the copy function
-	 */
-	protected function copyAssets() {
-		foreach ($this->assets as $item) {
-			if (is_string($item)) {
-				$item = $this->normalizePath($item);
-				$this->copyAsset($item, $item);
-			}
-			elseif (is_array($item) and count($item) == 2) {
-				$from = array_shift($item);
-				$to = array_shift($item);
-				$this->copyAsset($from, $to);
-			}
-		}
-	}
-
-	/**
-	 * Get a collection of pages to work with
+	 * Get a collection of pages to work with (collection may be empty)
 	 * @param Page|Pages|Site $content Content to write to the static folder
 	 * @return Pages
 	 */
@@ -269,35 +333,56 @@ class Builder {
 	}
 
 	/**
+	 * Try to render any PHP Fatal Error in our own template
+	 * @return bool
+	 */
+	protected function showFatalError() {
+		$error = error_get_last();
+		// Check if last error is of type FATAL
+		if (isset($error['type']) && $error['type'] == E_ERROR) {
+			echo $this->htmlReport([
+				'error' => 'Error while building pages',
+				'summary' => $this->summary,
+				'lastPage' => $this->lastpage,
+				'errorDetails' => $error['message'] . "<br>\n"
+					. 'In ' . $error['file'] . ', line ' . $error['line']
+			]);
+		}
+	}
+
+	/**
 	 * Build or rebuild static content
 	 * @param Page|Pages|Site $content Content to write to the static folder
 	 * @return array
 	 */
 	public function write($content) {
-		$this->summary->remove();
-
-		if ($content instanceof Site) {
-			$this->copyAssets();
-		}
-		$pages = $this->getPages($content);
+		$this->summary = [];
 
 		// Kill PHP Error reporting when building pages, to "catch" PHP errors
 		// from the pages or their controllers (and plugins etc.). We're going
 		// to try to hande it ourselves
 		$level = error_reporting();
-		$this->shutdown = function(){ $this->showFatalError(); };
-		register_shutdown_function($this->shutdown);
-		error_reporting(0);
+		$catchErrors = c::get('plugin.staticbuilder.catcherrors', false);
+		if ($catchErrors) {
+			$this->shutdown = function () { $this->showFatalError(); };
+			register_shutdown_function($this->shutdown);
+			error_reporting(0);
+		}
 
-		// Empty the page's target folder when rebuilding just one page
-		$flush = $pages->count() == 1;
-		foreach($pages as $page) {
-			$this->buildPage($page, true, $flush);
+		if ($content instanceof Site) {
+			foreach ($this->assets as $from=>$to) {
+				$this->copyAsset($from, $to, true);
+			}
+		}
+		foreach($this->getPages($content) as $page) {
+			$this->buildPage($page, true);
 		}
 
 		// Restore error reporting if building pages worked
-		error_reporting($level);
-		$this->shutdown = function(){};
+		if ($catchErrors) {
+			error_reporting($level);
+			$this->shutdown = function () {};
+		}
 	}
 
 	/**
@@ -306,22 +391,15 @@ class Builder {
 	 * @return array
 	 */
 	public function dryrun($content) {
-		$this->summary->remove();
+		$this->summary = [];
+		if ($content instanceof Site) {
+			foreach ($this->assets as $from=>$to) {
+				$this->copyAsset($from, $to, false);
+			}
+		}
 		foreach($this->getPages($content) as $page) {
 			$this->buildPage($page, false);
 		}
-	}
-
-	/**
-	 * Get build information (selected information to show in templates)
-	 * @param string $type
-	 * @return array
-	 */
-	public function info($type=null) {
-		if ($type == 'summary') return $this->summary->get();
-		elseif ($type == 'skipped') return $this->skipped;
-		elseif ($type == 'folder') return $this->folder;
-		return null;
 	}
 
 	/**

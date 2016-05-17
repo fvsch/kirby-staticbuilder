@@ -2,6 +2,81 @@
 
 $base = kirby()->urls()->index() . '/staticbuilder';
 
+$main = [];
+$ignored = [];
+foreach ($summary as $item) {
+	if ($item['status'] == 'ignore') {
+		$ignored[] = $item;
+	}
+	else $main[] = $item;
+}
+$mainCount = count($main);
+$ignoredCount = count($ignored);
+
+
+function statusText($status) {
+	if ($status == 'uptodate') return 'Up to date';
+	elseif ($status == 'outdated') return 'Outdated version';
+	elseif ($status == 'missing') return 'Not generated';
+	elseif ($status == 'generated') return 'Done';
+	elseif ($status == 'done') return 'Done';
+	return $status;
+}
+
+function showFiles($files) {
+	$text = '';
+	if ($files === 1) {
+		$text = "<br><small>+&nbsp;1&nbsp;file</small>";
+	}
+	elseif (is_int($files) and $files > 1) {
+		$text = "<br><small>+&nbsp;$files&nbsp;files</small>";
+	}
+	elseif (is_array($files)) {
+		foreach ($files as $file) {
+			$text .= "<br><code>$file</code>\n";
+		}
+	}
+	return $text;
+}
+
+function makeRow($info, $baseUrl) {
+	extract($info);
+	if (!isset($files)) $files = '';
+	$cols = [];
+	$sourceKey = 'source type-' . $type;
+	$sourceHtml = "<code>$source</code>";
+	if ($type == 'page' and isset($title)) $sourceHtml = $title . '<br>' . $sourceHtml;
+	if ($type != 'page') $sourceHtml = "[$type]<br>$sourceHtml";
+	$cols[$sourceKey] = $sourceHtml;
+	$cols['dest'] = "<code>$dest</code>" . showFiles($files);
+	$cols['status'] = statusText($status);
+	if (is_int($size)) $cols['status'] .= '<br>'.f::niceSize($size);
+	$cols['action'] = '';
+	if ($type == 'page') {
+		$action = '<form method="post" action="' . "$baseUrl/page/$uri" .'">';
+		$action .= '<input type="hidden" name="confirm" value="">';
+		$action .= '<button type="submit">Rebuild</button></form>';
+		$cols['action'] = $action;
+	}
+	$html = '';
+	foreach ($cols as $key=>$content) {
+		$html .= "<td class=\"$key\">$content</td>\n";
+	}
+	return "<tr class=\"$type $status\">\n$html</tr>\n";
+}
+
+function makeIgnoredRow($info) {
+	extract($info);
+	$cols = [];
+	$cols['source type-' . $type] = "[$type] <code>$source</code>";
+	$cols['reason'] = $info['reason'];
+	$html = '';
+	foreach ($cols as $key=>$content) {
+		$html .= "<td class=\"$key\">$content</td>\n";
+	}
+	return "<tr class=\"$type $status\">\n$html</tr>\n";
+}
+
 ?>
 <!doctype html>
 <html lang="en">
@@ -18,18 +93,21 @@ $base = kirby()->urls()->index() . '/staticbuilder';
 		<p class="<?php echo $error ? 'error' : 'info' ?>">
 		<?php
 			if (isset($error) and $error != '') echo $error;
-			else echo ($confirm ? 'Built' : 'Found') . ' ' . count($summary) . ' elements';
+			else {
+				echo ($confirm ? 'Built' : 'Found') . ' ' . count($summary) . ' elements';
+				if ($ignoredCount > 0) echo " (skipping $ignoredCount)";
+			}
 		?>
 		</p>
 	</div>
 	<?php if ($mode == 'page'): ?>
 		<div class="header-col header-col--side">
-			<a class="header-btn" href="<?php echo $base ?>/site">List all pages</a>
+			<a class="header-btn" href="<?php echo $base ?>">List all pages</a>
 		</div>
 	<?php endif ?>
 	<?php if ($mode == 'site' and !$confirm): ?>
 		<form class="header-col header-col--side"
-			  method="post" action="<?php echo $base ?>/site">
+			  method="post" action="<?php echo $base ?>">
 			<input type="hidden" name="confirm" value="1">
 			<button class="header-btn" type="submit">Rebuild everything</button>
 		</form>
@@ -50,7 +128,7 @@ $base = kirby()->urls()->index() . '/staticbuilder';
 		</blockquote>
 	</div>
 <?php endif ?>
-<?php if (count($summary) > 0): ?>
+<?php if ($mainCount > 0): ?>
 	<?php if (isset($errorDetails)): ?>
 	<p>
 		The following pages and files were built without errors.<br>
@@ -60,64 +138,34 @@ $base = kirby()->urls()->index() . '/staticbuilder';
 	<table class="pages">
 		<thead>
 		<tr>
-			<th class="shorter">Type</th>
 			<th>Source</th>
 			<th><?php echo $confirm ? 'Output' : 'Target'; ?></th>
 			<th class="short">Status</th>
-			<th class="short">Action</th>
+			<th class="shorter">Action</th>
 		</tr>
 		</thead>
 		<tbody>
-		<?php foreach($summary as $key=>$info): ?>
-			<tr class="pageinfo <?php echo $info['type'] . ' ' . $info['status']; ?>">
-				<td>
-					<?php echo $info['type']; ?>
-				</td>
-				<td>
-					<?php echo $info['name']; ?><br>
-					<code><?php echo $key; ?></code><br>
-				</td>
-				<td>
-					<code><?php echo $info['dest'] ?></code>
-					<?php if (array_key_exists('files', $info)):
-						foreach ($info['files'] as $file) {
-							echo "<br><code>$file</code>\n"; }
-					endif; ?>
-				</td>
-				<td><?php
-					$status = $info['status'];
-					$size   = $info['size'];
-					echo $status;
-					if ($status == 'generated' and is_int($size)) {
-						$hrsize = f::niceSize($size);
-						echo "<br>\n<code>$hrsize</code>";
-					}
-				?></td>
-				<td><?php if ($info['type'] == 'page'): ?>
-					<form method="post" action="<?php echo $base . '/page/' . $info['uri'] ?>">
-						<input type="hidden" name="confirm" value="1">
-						<button type="submit">Rebuild</button>
-					</form>
-				<? endif ?></td>
-			</tr>
-		<?php endforeach ?>
+		<?php foreach($main as $item) {
+			echo makeRow($item, $base);
+		} ?>
 		</tbody>
 	</table>
 <?php endif ?>
-<?php if (count($skipped) > 0): ?>
-	<div class="skipped">
-		<h2>These pages were skipped</h2>
-		<p class="skipped-info">
-			By default, folders with no text file are skipped. You can specify your own
-			rules for which pages should be included in the static build by defining a
-			callback for the <code>'plugin.staticbuilder.filter'</code> option.
-		</p>
-		<ul>
-		<?php foreach ($skipped as $uri): ?>
-			<li><code><?php echo $uri ?></code></li>
-		<?php endforeach ?>
-		</ul>
-		</div>
+<?php if ($ignoredCount > 0): ?>
+	<h2>These pages or files were skipped</h2>
+	<table class="pages">
+		<thead>
+		<tr>
+			<th>Source</th>
+			<th>Skipped because</th>
+		</tr>
+		</thead>
+		<tbody>
+		<?php foreach($ignored as $item) {
+			echo makeIgnoredRow($item);
+		} ?>
+		</tbody>
+	</table>
 <? endif ?>
 </main>
 

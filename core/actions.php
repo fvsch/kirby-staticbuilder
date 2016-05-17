@@ -23,9 +23,7 @@ function siteAction() {
 		'mode'    => 'site',
 		'error'   => false,
 		'confirm' => $confirm,
-		'folder'  => $builder->info('folder'),
-		'summary' => $builder->info('summary'),
-		'skipped' => $builder->info('skipped')
+		'summary' => $builder->summary
 	];
 	return $builder->htmlReport($data);
 }
@@ -52,9 +50,7 @@ function pageAction($uri) {
 	else {
 		if ($confirm) $builder->write($page);
 		else $builder->dryrun($page);
-		$data['folder']  = $builder->info('folder');
-		$data['summary'] = $builder->info('summary');
-		$data['skipped'] = $builder->info('skipped');
+		$data['summary'] = $builder->summary;
 	}
 	return $builder->htmlReport($data);
 }

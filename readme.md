@@ -11,17 +11,22 @@ StaticBuilder Plugin for Kirby CMS
 *   In your config (preferably the config for your local instance, not the main or production config!), enable the plugin: `c::set('plugin.staticbuilder.enabled', true);`
 
 
+## Usage
+
+Navigate to:
+
+-   `/staticbuilder/`
+-   `/staticbuilder/page/[page-uri]`
+
+To see information about the site or a page, and generate the static files for this site or page.
+
+
 ## Current status
 
-Working:
-
--   Generate a single page by navigating to
-    `/staticbuilder/page/[page-uri]`
-
-Perhaps working, perhaps broken:
-
--   Generate all pages by navigating to
-    `staticbuilder/site`
+-   Pages are generated
+-   Assets are copied
+-   This plugin will write files to `[yourproject]/static` and should not EVER write files anywhere else.
+-   There might be bugs, [look at the issues](https://github.com/fvsch/kirby-staticbuilder/issues)
 
 
 ## Roadmap
