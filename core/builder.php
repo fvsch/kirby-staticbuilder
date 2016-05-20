@@ -40,9 +40,6 @@ class Builder {
 	protected $pagefiles = false;
 	protected $filter    = null;
 
-	// Map of known page URLs and corresponding filenames
-	protected $urlmap = [];
-
 	// Callable for PHP Errors
 	public $shutdown;
 	public $lastpage;
@@ -100,14 +97,6 @@ class Builder {
 
 		// Output ugly URLs (e.g. '/my/page/index.html')?
 		$this->uglyurls = c::get('plugin.staticbuilder.uglyurls', $this->uglyurls);
-		if ($this->uglyurls) {
-			$minLength = strlen(static::URLPREFIX);
-			foreach ($this->kirby->site->index() as $page) {
-				if (strlen($url = $page->url()) > $minLength) {
-					$this->urlmap[$url] = $url . $this->extension;
-				}
-			}
-		}
 
 		// Copy page files to a folder named after the page URL?
 		$this->pagefiles = c::get('plugin.staticbuilder.pagefiles', $this->pagefiles);
@@ -220,35 +209,35 @@ class Builder {
 	 * @return string
 	 */
 	protected function rewriteUrls($text, $pageUrl) {
-		if ($this->uglyurls) {
-			$search = array_keys($this->urlmap);
-			$replace = array_values($this->urlmap);
-			$text = str_replace($search, $replace, $text);
-		}
-
-		// Let's make relative URLs
-		if ($this->baseurl == '.') {
-			$pattern = '(["\'])' .            // opening is a quote character
-				'\s*(URLPREFIX[^<>]*)\s*' .   // capture the URL itself
+		// For options that require extensive URL rewriting
+		$relative = $this->baseurl === '.';
+		$uglyurls = $this->uglyurls;
+		if ($relative || $uglyurls) {
+			$ext = $uglyurls ? $this->extension : '';
+			$pattern =
+				'(["\'])' .                   // opening is a quote character
+				'\s*(URLPREFIX[^<>]*?)\s*' .  // capture the URL itself
 				'\1' .                        // should end with the same quote character
 				'|(=)' .                      // alternative scenario, opening is =
-				'(URLPREFIX[^\s<>\'"]*)';     // this time we break on any space or quote
+				'(URLPREFIX[^\s<>\'"]*)'      // this time we break on any space or quote
+			;
 			$pattern = '!' . str_replace('URLPREFIX', static::URLPREFIX, $pattern) . '!';
 			$text = preg_replace_callback(
 				$pattern,
-				function($data) use ($pageUrl) {
-					if (count($data) === 3) {
-						return $data[1] . $this->relativeUrl($pageUrl, $data[2]) . $data[1];
+				function($data) use ($pageUrl, $ext, $relative, $uglyurls) {
+					$count = count($data);
+					$url = $count === 5 ? $data[4] : $data[2];
+					if ($relative) $url = $this->relativeUrl($pageUrl, $url);
+					if ($uglyurls && !array_key_exists('extension', pathinfo($url))) {
+						if (!str::endsWith($url, '/')) $url .= $ext;
 					}
-					elseif (count($data) === 5) {
-						return $data[3] . $this->relativeUrl($pageUrl, $data[4]);
-					}
-					else return $data[0];
+					if ($count === 3) return $data[1] . $url . $data[1];
+					if ($count === 5) return $data[3] . $url;
+					else return $data;
 				},
 				$text
 			);
 		}
-
 		// For remaining instances of the placeholder
 		// (= all with default settings)
 		$text = str_replace(static::URLPREFIX, $this->baseurl, $text);
