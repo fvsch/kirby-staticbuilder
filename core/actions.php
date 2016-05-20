@@ -12,17 +12,16 @@ use Response;
  * @return bool
  */
 function siteAction() {
-	$confirm = r::is('POST') and r::get('confirm');
+	$write = r::is('POST') and r::get('confirm');
 	$site = site();
 	$builder = new Builder();
 
-	if ($confirm) $builder->write($site);
-	else $builder->dryrun($site);
+	$builder->run($site, $write);
 
 	$data = [
 		'mode'    => 'site',
 		'error'   => false,
-		'confirm' => $confirm,
+		'confirm' => $write,
 		'summary' => $builder->summary
 	];
 	return $builder->htmlReport($data);
@@ -34,21 +33,20 @@ function siteAction() {
  * @return bool
  */
 function pageAction($uri) {
+	$write = r::is('POST') and r::get('confirm');
 	$page = page($uri);
 	$builder = new Builder();
-	$confirm = r::is('POST') and r::get('confirm');
 	$data = [
 		'mode'    => 'page',
 		'error'   => false,
-		'confirm' => $confirm,
+		'confirm' => $write,
 		'summary' => []
 	];
 	if (!$page) {
 		$data['error'] = "Error: Cannot find page for \"$uri\"";
 	}
 	else {
-		if ($confirm) $builder->write($page);
-		else $builder->dryrun($page);
+		$builder->run($page, $write);
 		$data['summary'] = $builder->summary;
 	}
 	return $builder->htmlReport($data);

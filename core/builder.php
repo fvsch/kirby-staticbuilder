@@ -446,53 +446,40 @@ class Builder {
 	/**
 	 * Build or rebuild static content
 	 * @param Page|Pages|Site $content Content to write to the static folder
+	 * @param boolean $write Should we actually write files
 	 * @return array
 	 */
-	public function write($content) {
+	public function run($content, $write=false) {
 		$this->summary = [];
 
-		// Kill PHP Error reporting when building pages, to "catch" PHP errors
-		// from the pages or their controllers (and plugins etc.). We're going
-		// to try to hande it ourselves
-		$level = error_reporting();
-		$catchErrors = c::get('plugin.staticbuilder.catcherrors', false);
-		if ($catchErrors) {
-			$this->shutdown = function () { $this->showFatalError(); };
-			register_shutdown_function($this->shutdown);
-			error_reporting(0);
+		if ($write) {
+			// Kill PHP Error reporting when building pages, to "catch" PHP errors
+			// from the pages or their controllers (and plugins etc.). We're going
+			// to try to hande it ourselves
+			$level = error_reporting();
+			$catchErrors = c::get('plugin.staticbuilder.catcherrors', false);
+			if ($catchErrors) {
+				$this->shutdown = function () {
+					$this->showFatalError();
+				};
+				register_shutdown_function($this->shutdown);
+				error_reporting(0);
+			}
 		}
 
 		foreach($this->getPages($content) as $page) {
-			$this->buildPage($page, true);
+			$this->buildPage($page, $write);
 		}
 		if ($content instanceof Site) {
 			foreach ($this->assets as $from=>$to) {
-				$this->copyAsset($from, $to, true);
+				$this->copyAsset($from, $to, $write);
 			}
 		}
 
 		// Restore error reporting if building pages worked
-		if ($catchErrors) {
+		if ($write && $catchErrors) {
 			error_reporting($level);
 			$this->shutdown = function () {};
-		}
-	}
-
-	/**
-	 * Build or rebuild static content
-	 * @param Page|Pages|Site $content Content to write to the static folder
-	 * @return array
-	 */
-	public function dryrun($content) {
-		$this->summary = [];
-
-		foreach($this->getPages($content) as $page) {
-			$this->buildPage($page, false);
-		}
-		if ($content instanceof Site) {
-			foreach ($this->assets as $from=>$to) {
-				$this->copyAsset($from, $to, false);
-			}
 		}
 	}
 
