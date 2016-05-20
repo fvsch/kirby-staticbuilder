@@ -110,7 +110,7 @@ function makeIgnoredRow($info) {
 			<a class="header-btn" href="<?php echo $base ?>">List all pages</a>
 		</div>
 	<?php endif ?>
-	<?php if ($mode == 'site' and !$confirm): ?>
+	<?php if ($mode == 'site'): ?>
 		<form class="header-col header-col--side"
 			  method="post" action="<?php echo $base ?>">
 			<input type="hidden" name="confirm" value="1">
