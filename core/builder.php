@@ -34,7 +34,7 @@ class Builder {
 	// Config (there is a 'plugin.staticbuilder.[key]' for each one)
 	protected $outputdir = 'static';
 	protected $extension = '/index.html';
-	protected $baseurl   = '/';
+	protected $baseurl   = '';
 	protected $assets    = ['assets', 'content', 'thumbs'];
 	protected $uglyurls  = false;
 	protected $pagefiles = false;
