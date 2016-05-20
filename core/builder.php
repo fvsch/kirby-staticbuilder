@@ -214,15 +214,12 @@ class Builder {
 	}
 
 	/**
-	 * Return the modified response body for a page
-	 * @param Page $page
+	 * Rewrites URLs in the response body of a page
+	 * @param string $text Response text
+	 * @param string $pageUrl URL for the page
 	 * @return string
 	 */
-	protected function renderPage($page) {
-		$pageUrl = $page->url() . $this->extension;
-		$this->kirby->site()->visit($page->uri());
-		$text = $this->kirby->render($page, [], false);
-
+	protected function rewriteUrls($text, $pageUrl) {
 		if ($this->uglyurls) {
 			$search = array_keys($this->urlmap);
 			$replace = array_values($this->urlmap);
@@ -318,7 +315,10 @@ class Builder {
 		}
 
 		// Render page
-		$text = $this->renderPage($page);
+		$this->kirby->site()->visit($page->uri());
+		$text = $this->kirby->render($page, [], false);
+		$text = $this->rewriteUrls($text, $page->url().$this->extension);
+
 		f::write($file, $text);
 		$log['size'] = strlen($text);
 		$log['status'] = 'generated';
