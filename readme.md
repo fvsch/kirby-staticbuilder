@@ -6,7 +6,7 @@ StaticBuilder Plugin for Kirby CMS
 
 ## Installation
 
-*   Requires Kirby 2.3 (currently in beta)!
+*   Requires Kirby 2.3
 *   Download this repository and put its content in `site/plugins/staticbuilder`
 *   In your config (preferably the config for your local instance, not the main or production config!), enable the plugin: `c::set('plugin.staticbuilder.enabled', true);`
 
@@ -15,10 +15,10 @@ StaticBuilder Plugin for Kirby CMS
 
 Navigate to:
 
--   `/staticbuilder/`
--   `/staticbuilder/page/[page-uri]`
+-   `/staticbuilder`
+-   `/staticbuilder/[page-uri]`
 
-To see information about the site or a page, and generate the static files for this site or page.
+To see information about the site or a specific page, and generate the static files for this site or page.
 
 
 ## Current status

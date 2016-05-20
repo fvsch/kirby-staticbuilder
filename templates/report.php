@@ -1,15 +1,17 @@
 <?php
 
-$base = kirby()->urls()->index() . '/staticbuilder';
-
 $main = [];
 $ignored = [];
+
+$base = explode('staticbuilder', thisUrl())[0] . 'staticbuilder';
+
 foreach ($summary as $item) {
 	if ($item['status'] == 'ignore') {
 		$ignored[] = $item;
 	}
 	else $main[] = $item;
 }
+
 $mainCount = count($main);
 $ignoredCount = count($ignored);
 
@@ -53,7 +55,7 @@ function makeRow($info, $baseUrl) {
 	if (is_int($size)) $cols['status'] .= '<br>'.f::niceSize($size);
 	$cols['action'] = '';
 	if ($type == 'page') {
-		$action = '<form method="post" action="' . "$baseUrl/page/$uri" .'">';
+		$action = '<form method="post" action="' . "$baseUrl/$uri" .'">';
 		$action .= '<input type="hidden" name="confirm" value="">';
 		$action .= '<button type="submit">Rebuild</button></form>';
 		$cols['action'] = $action;
@@ -83,7 +85,7 @@ function makeIgnoredRow($info) {
 <head>
 	<meta charset="UTF-8">
 	<title>Kirby StaticBuilder</title>
-	<link rel="stylesheet" href="<?php echo $base ?>/report.css">
+	<style><?php echo $styles; ?></style>
 </head>
 <body>
 

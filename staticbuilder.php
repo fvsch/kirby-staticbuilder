@@ -18,14 +18,9 @@ if (c::get('plugin.staticbuilder.enabled', false)) {
 	]);
 
 	$kirby->set('route', [
-		'pattern' => 'staticbuilder/page/(:all)',
+		'pattern' => 'staticbuilder/(:all)',
 		'action'  => 'Kirby\Plugin\StaticBuilder\pageAction',
 		'method'  => 'GET|POST'
-	]);
-
-	$kirby->set('route', [
-		'pattern' => 'staticbuilder/report.css',
-		'action'  => 'Kirby\Plugin\StaticBuilder\cssAction'
 	]);
 
 }
