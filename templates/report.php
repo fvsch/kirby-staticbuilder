@@ -168,7 +168,7 @@ function makeIgnoredRow($info) {
 		} ?>
 		</tbody>
 	</table>
-<? endif ?>
+<?php endif ?>
 </main>
 
 </body>
