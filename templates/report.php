@@ -97,7 +97,10 @@ function makeIgnoredRow($info) {
 			if (isset($error) and $error != '') echo $error;
 			else {
 				echo ($confirm ? 'Built' : 'Found') . ' ' . count($summary) . ' elements';
-				if ($ignoredCount > 0) echo " (skipping $ignoredCount)";
+				if ($ignoredCount > 0) {
+					echo " (<a href=\"#results\">$mainCount included</a>,";
+					echo " <a href=\"#skipped\">$ignoredCount skipped</a>)";
+				}
 			}
 		?>
 		</p>
@@ -137,7 +140,7 @@ function makeIgnoredRow($info) {
 		<strong>Important:</strong> the script was stopped, so the next pages in the queue were NOT built.
 	</p>
 	<?php endif ?>
-	<table class="pages">
+	<table id="results" class="pages">
 		<thead>
 		<tr>
 			<th>Source</th>
@@ -154,7 +157,7 @@ function makeIgnoredRow($info) {
 	</table>
 <?php endif ?>
 <?php if ($ignoredCount > 0): ?>
-	<h2>These pages or files were skipped</h2>
+	<h2 id="skipped">These pages or files were skipped</h2>
 	<table class="pages">
 		<thead>
 		<tr>
