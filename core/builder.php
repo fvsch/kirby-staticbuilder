@@ -462,6 +462,10 @@ class Builder {
 			}
 		}
 
+		if ($write && $content instanceof Site) {
+			$folder = new Folder($this->outputdir);
+			$folder->flush();
+		}
 		foreach($this->getPages($content) as $page) {
 			$this->buildPage($page, $write);
 		}
