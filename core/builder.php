@@ -33,8 +33,8 @@ class Builder {
 
 	// Config (there is a 'plugin.staticbuilder.[key]' for each one)
 	protected $outputdir = 'static';
-	protected $extension = '/index.html';
-	protected $baseurl   = '';
+	protected $filename  = '/index.html';
+	protected $baseurl   = '/';
 	protected $assets    = ['assets', 'content', 'thumbs'];
 	protected $uglyurls  = false;
 	protected $pagefiles = false;
@@ -76,15 +76,15 @@ class Builder {
 		}
 		$this->outputdir = $folder->root();
 
-		// Extension for output pages
-		if ($ext = c::get('plugin.staticbuilder.extension')) {
-			$this->extension = $this->normalizePath($ext);
+		// File name or extension for output pages
+		if ($fn = c::get('plugin.staticbuilder.filename')) {
+			$fn = str_replace(['/', '\\'], '', $fn);
+			$this->filename = str::startsWith($fn,'.') ? $fn : '/' . $fn;
 		};
 
-		// URL root (similar to the 'url' option but for the static build)
-		if (is_string($baseurl = c::get('plugin.staticbuilder.baseurl'))) {
-			$this->baseurl = $baseurl;
-		}
+		// URL root, make sure it ends with just one slash
+		$baseurl = c::get('plugin.staticbuilder.baseurl', $this->baseurl);
+		$this->baseurl = rtrim($baseurl, '/') . '/';
 
 		// Normalize assets config
 		$assets = c::get('plugin.staticbuilder.assets', $this->assets);
@@ -192,14 +192,20 @@ class Builder {
 	 * @return string
 	 */
 	protected function relativeUrl($from='', $to='') {
-		if ($from == $to) return '#';
-		$from = explode('/', $from);
-		$to = explode('/', $to);
+		$from = explode('/', ltrim($from, '/'));
+		$to   = explode('/', ltrim($to, '/'));
+		$last = false;
 		while (count($from) && count($to) && $from[0] === $to[0]) {
-			array_shift($from);
+			$last = array_shift($from);
 			array_shift($to);
 		}
-		return str_repeat('../', count($from)) . implode('/', $to);
+		if (count($from) == 0) {
+			if ($last) array_unshift($to, $last);
+			return './' . implode('/', $to);
+		}
+		else {
+			return './' . str_repeat('../', count($from)-1) . implode('/', $to);
+		}
 	}
 
 	/**
@@ -209,39 +215,39 @@ class Builder {
 	 * @return string
 	 */
 	protected function rewriteUrls($text, $pageUrl) {
-		// For options that require extensive URL rewriting
-		$relative = $this->baseurl === '.';
-		$uglyurls = $this->uglyurls;
-		if ($relative || $uglyurls) {
-			$ext = $uglyurls ? $this->extension : '';
-			$pattern =
-				'(["\'])' .                   // opening is a quote character
-				'\s*(URLPREFIX[^<>]*?)\s*' .  // capture the URL itself
-				'\1' .                        // should end with the same quote character
-				'|(=)' .                      // alternative scenario, opening is =
-				'(URLPREFIX[^\s<>\'"]*)'      // this time we break on any space or quote
-			;
-			$pattern = '!' . str_replace('URLPREFIX', static::URLPREFIX, $pattern) . '!';
+		$relative = $this->baseurl === './';
+		if ($relative || $this->uglyurls) {
+			// Match restrictively urls starting with prefix, and which are
+			// correctly escaped (no whitespace or quotes).
+			$find = preg_quote(static::URLPREFIX) . '(\/?[^<>{}"\'\s]*)';
 			$text = preg_replace_callback(
-				$pattern,
-				function($data) use ($pageUrl, $ext, $relative, $uglyurls) {
-					$count = count($data);
-					$url = $count === 5 ? $data[4] : $data[2];
-					if ($relative) $url = $this->relativeUrl($pageUrl, $url);
-					if ($uglyurls && !array_key_exists('extension', pathinfo($url))) {
-						if (!str::endsWith($url, '/')) $url .= $ext;
+				"!$find!",
+				function($found) use ($pageUrl, $relative) {
+					$url = $found[0];
+					if ($this->uglyurls) {
+						$path = $found[1];
+						if (!$path || $path === '/') {
+							$url = rtrim($url, '/') . '/index.html';
+						}
+						elseif (!str::endsWith($url, '/') && !pathinfo($url, PATHINFO_EXTENSION)) {
+							$url .= $this->filename;
+						}
 					}
-					if ($count === 3) return $data[1] . $url . $data[1];
-					if ($count === 5) return $data[3] . $url;
-					else return $data;
+					if ($relative) {
+						if ($this->uglyurls) $pageUrl .= $this->filename;
+						$pageUrl = str_replace(static::URLPREFIX, '', $pageUrl);
+						$url = str_replace(static::URLPREFIX, '', $url);
+						$url = $this->relativeUrl($pageUrl, $url);
+					}
+					return $url;
 				},
 				$text
 			);
 		}
-		// For remaining instances of the placeholder
-		// (= all with default settings)
-		$text = str_replace(static::URLPREFIX, $this->baseurl, $text);
-		return $text;
+		// Except if we have converted to relative URLs, we still have
+		// the placeholder prefix in the text. Swap in the base URL.
+		$pattern = '!' . preg_quote(static::URLPREFIX) . '\/?!';
+		return preg_replace($pattern, $this->baseurl, $text);
 	}
 
 	/**
@@ -266,7 +272,7 @@ class Builder {
 
 		// Figure where we might write the page and its files
 		$base = ltrim(str_replace(static::URLPREFIX, '', $page->url()), '/');
-		$file = $page->isHomePage() ? 'index.html' : $base . $this->extension;
+		$file = $page->isHomePage() ? 'index.html' : $base . $this->filename;
 		$file = $this->normalizePath($this->outputdir . DS . $file);
 		$log['dest'] = str_replace($this->outputdir, 'static', $file);
 
@@ -306,7 +312,7 @@ class Builder {
 		// Render page
 		$this->kirby->site()->visit($page->uri());
 		$text = $this->kirby->render($page, [], false);
-		$text = $this->rewriteUrls($text, $page->url().$this->extension);
+		$text = $this->rewriteUrls($text, $page->url());
 
 		f::write($file, $text);
 		$log['size'] = strlen($text);
