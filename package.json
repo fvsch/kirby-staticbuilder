@@ -1,0 +1,7 @@
+{
+  "name": "staticbuilder",
+  "version": "1.0.0-dev",
+  "description": "Kirby StaticBuilder Plugin",
+  "license": "MIT",
+  "type": "kirby-plugin"
+}
