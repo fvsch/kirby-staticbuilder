@@ -29,7 +29,7 @@ header .error {
     color: red;
 }
 header form {
-    margin-top: 20px;
+    display: inline;
 }
 .header-btn {
     padding: .5em 1em;
@@ -57,6 +57,18 @@ button.header-btn {
 button.header-btn:hover,
 button.header-btn:focus {
     color: red;
+}
+@media (max-width:799px) {
+    .header-btn {
+        font-size: 100%;
+    }
+    .header-col--side {
+        margin-top: 20px;
+        display: flex;
+    }
+    .header-col--side a {
+        order: 2;
+    }
 }
 @media (min-width:800px) {
     header {
@@ -117,6 +129,12 @@ button.header-btn:focus {
 .pages code {
     font-family: monospace, monospace;
     font-size: 85%;
+    color: #444;
+}
+.pages a {
+    display: block;
+    text-decoration: none;
+    color: #0f7595;
 }
 
 @media (min-width:800px) {

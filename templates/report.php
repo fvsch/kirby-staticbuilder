@@ -46,20 +46,17 @@ function makeRow($info, $baseUrl) {
 	if (!isset($files)) $files = '';
 	$cols = [];
 	$sourceKey = 'source type-' . $type;
-	$sourceHtml = "<code>$source</code>";
-	if ($type == 'page' and isset($title)) $sourceHtml = $title . '<br>' . $sourceHtml;
-	if ($type != 'page') $sourceHtml = "[$type]<br>$sourceHtml";
+	if ($type == 'page' and isset($title)) {
+		$sourceHtml = "<a href=\"$baseUrl/$uri\">"
+			. "$title<br><code>$source</code></a>";
+	}
+	else {
+		$sourceHtml = "[$type]<br><code>$source</code>";
+	}
 	$cols[$sourceKey] = $sourceHtml;
 	$cols['dest'] = "<code>$dest</code>" . showFiles($files);
 	$cols['status'] = statusText($status);
 	if (is_int($size)) $cols['status'] .= '<br>'.f::niceSize($size);
-	$cols['action'] = '';
-	if ($type == 'page') {
-		$action = '<form method="post" action="' . "$baseUrl/$uri" .'">';
-		$action .= '<input type="hidden" name="confirm" value="">';
-		$action .= '<button type="submit">Rebuild</button></form>';
-		$cols['action'] = $action;
-	}
 	$html = '';
 	foreach ($cols as $key=>$content) {
 		$html .= "<td class=\"$key\">$content</td>\n";
@@ -105,18 +102,17 @@ function makeIgnoredRow($info) {
 		?>
 		</p>
 	</div>
-	<?php if ($mode == 'page'): ?>
-		<div class="header-col header-col--side">
-			<a class="header-btn" href="<?php echo $base ?>">List all pages</a>
-		</div>
-	<?php endif ?>
-	<?php if ($mode == 'site'): ?>
-		<form class="header-col header-col--side"
-			  method="post" action="<?php echo $base ?>">
+	<div class="header-col header-col--side">
+		<?php if ($mode == 'page'): ?>
+			<a class="header-btn" href="<?php echo $base ?>">show all pages</a>
+		<?php endif ?>
+		<form method="post" action="">
 			<input type="hidden" name="confirm" value="1">
-			<button class="header-btn" type="submit">Rebuild everything</button>
+			<button class="header-btn" type="submit">
+				build <?= $mode == 'page' ? 'this page' : 'everything&thinsp;!' ?>
+			</button>
 		</form>
-	<?php endif ?>
+	</div>
 </header>
 
 <main>
@@ -144,9 +140,8 @@ function makeIgnoredRow($info) {
 		<thead>
 		<tr>
 			<th>Source</th>
-			<th><?php echo $confirm ? 'Output' : 'Target'; ?></th>
+			<th><?php echo $confirm ? 'Output' : 'Output target'; ?></th>
 			<th class="short">Status</th>
-			<th class="shorter">Action</th>
 		</tr>
 		</thead>
 		<tbody>

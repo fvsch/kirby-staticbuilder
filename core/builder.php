@@ -52,8 +52,7 @@ class Builder {
 	 * Resolve config and stuff.
 	 * @throws Exception
 	 */
-	public function __construct()
-	{
+	public function __construct() {
 		// Kirby instance with some hacks
 		$this->kirby = $this->kirbyInstance();
 
@@ -234,7 +233,7 @@ class Builder {
 						}
 					}
 					if ($relative) {
-						if ($this->uglyurls) $pageUrl .= $this->filename;
+						$pageUrl .= $this->filename;
 						$pageUrl = str_replace(static::URLPREFIX, '', $pageUrl);
 						$url = str_replace(static::URLPREFIX, '', $url);
 						$url = $this->relativeUrl($pageUrl, $url);
@@ -251,12 +250,32 @@ class Builder {
 	}
 
 	/**
+	 * Generate the file path where a page should be written
+	 * @param Page $page
+	 * @param string|null $lang
+	 * @return string
+	 * @throws Exception
+	 */
+	protected function pageFilename(Page $page, $lang=null) {
+		$url  = ltrim(str_replace(static::URLPREFIX, '', $page->url($lang)));
+		$base = $this->outputdir . DS . $url;
+		if ($base == '' || $base == '/') $file = $base . 'index.html';
+		else $file = $base . $this->filename;
+		$file = $this->normalizePath($file);
+		if ($this->filterPath($file) == false) {
+			throw new Exception('Output path for page goes outside of static directory: ' . $file);
+		}
+		return $file;
+	}
+
+	/**
 	 * Write the HTML for a page and copy its files
 	 * @param Page $page
+	 * @param string $lang Page language code
 	 * @param bool $write Should we write files or just report info (dry-run).
 	 * @return array
 	 */
-	protected function buildPage(Page $page, $write=false) {
+	protected function buildPage(Page $page, $lang=null, $write=false) {
 		$log = [
 			'type'   => 'page',
 			'status' => '',
@@ -267,13 +286,15 @@ class Builder {
 			// Specific to pages
 			'title'  => $page->title()->value,
 			'uri'    => $page->uri(),
+			'lang'   => $lang,
 			'files'  => []
 		];
 
-		// Figure where we might write the page and its files
-		$base = ltrim(str_replace(static::URLPREFIX, '', $page->url()), '/');
-		$file = $page->isHomePage() ? 'index.html' : $base . $this->filename;
-		$file = $this->normalizePath($this->outputdir . DS . $file);
+		// Run 'visit' early to get the right URL on multilang sites
+		$this->kirby->site()->visit($page->uri(), $lang);
+
+		// Make filename based on our own logic + user config
+		$file = $this->pageFilename($page);
 		$log['dest'] = str_replace($this->outputdir, 'static', $file);
 
 		// Store reference to this page in case there's a fatal error
@@ -285,11 +306,6 @@ class Builder {
 			if ($this->filter == null) $log['reason'] = 'Page has no text file';
 			else $log['reason'] = 'Excluded by custom filter';
 			return $this->summary[] = $log;
-		}
-		// Should never happen, but better safe than sorry
-		elseif (!$this->filterPath($file)) {
-			$log['status'] = 'ignore';
-			$log['reason'] = 'Output path for page goes outside of static directory';
 		}
 
 		if ($write == false) {
@@ -310,7 +326,6 @@ class Builder {
 		}
 
 		// Render page
-		$this->kirby->site()->visit($page->uri());
 		$text = $this->kirby->render($page, [], false);
 		$text = $this->rewriteUrls($text, $page->url());
 
@@ -320,14 +335,14 @@ class Builder {
 
 		// Copy page files in a folder
 		if ($this->pagefiles) {
-			$dir = $this->normalizePath($this->outputdir . DS . $base);
+			$dir = ltrim(str_replace(static::URLPREFIX, '', $page->url()), '/');
+			$dir = $this->normalizePath($this->outputdir . DS . $dir);
 			foreach ($page->files() as $f) {
 				$dest = $dir . DS . $f->filename();
-				$f->copy($dest);
-				$log['files'][] = str_replace($this->outputdir, 'static', $dest);
+				$done = $f->copy($dest);
+				if ($done) $log['files'][] = str_replace($this->outputdir, 'static', $dest);
 			}
 		}
-
 		return $this->summary[] = $log;
 	}
 
@@ -426,7 +441,6 @@ class Builder {
 	 */
 	protected function showFatalError() {
 		$error = error_get_last();
-		// Check if last error is of type FATAL
 		switch ($error['type']) {
 			case E_ERROR:
 			case E_CORE_ERROR:
@@ -456,6 +470,8 @@ class Builder {
 	public function run($content, $write=false) {
 		$this->summary = [];
 		$catchErrors = c::get('plugin.staticbuilder.catcherrors', true);
+		$multilang = $this->kirby->site->multilang();
+		$languages = $multilang ? $this->kirby->site->languages() : [null];
 
 		if ($write) {
 			// Kill PHP Error reporting when building pages, to "catch" PHP errors
@@ -476,7 +492,9 @@ class Builder {
 			$folder->flush();
 		}
 		foreach($this->getPages($content) as $page) {
-			$this->buildPage($page, $write);
+			foreach($languages as $lang) {
+				$this->buildPage($page, $lang->code(), $write);
+			}
 		}
 		if ($content instanceof Site) {
 			foreach ($this->assets as $from=>$to) {
