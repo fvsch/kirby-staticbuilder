@@ -12,6 +12,9 @@ h2 {
 p {
     line-height: 1.5;
 }
+a {
+    color: #0f7595;
+}
 @media (max-width: 1000px) {
     body { font-size: 90%; }
 }
@@ -134,7 +137,6 @@ button.header-btn:focus {
 .pages a {
     display: block;
     text-decoration: none;
-    color: #0f7595;
 }
 
 @media (min-width:800px) {

@@ -33,7 +33,7 @@ class Builder {
 
 	// Config (there is a 'plugin.staticbuilder.[key]' for each one)
 	protected $outputdir = 'static';
-	protected $filename  = '/index.html';
+	protected $filename  = '.html';
 	protected $baseurl   = '/';
 	protected $assets    = ['assets', 'content', 'thumbs'];
 	protected $uglyurls  = false;
@@ -470,8 +470,6 @@ class Builder {
 	public function run($content, $write=false) {
 		$this->summary = [];
 		$catchErrors = c::get('plugin.staticbuilder.catcherrors', true);
-		$multilang = $this->kirby->site->multilang();
-		$languages = $multilang ? $this->kirby->site->languages() : [null];
 
 		if ($write) {
 			// Kill PHP Error reporting when building pages, to "catch" PHP errors
@@ -487,15 +485,23 @@ class Builder {
 			}
 		}
 
+		// Empty folder on full site build
 		if ($write && $content instanceof Site) {
 			$folder = new Folder($this->outputdir);
 			$folder->flush();
 		}
+
+		// Build each page several times for multilingual sites
 		foreach($this->getPages($content) as $page) {
-			foreach($languages as $lang) {
-				$this->buildPage($page, $lang->code(), $write);
+			if ($this->kirby->site->multilang()) {
+				foreach($this->kirby->site->languages() as $lang) {
+					$this->buildPage($page, $lang->code(), $write);
+				}
 			}
+			else $this->buildPage($page, null, $write);
 		}
+
+		// Copy assets after building pages (so that e.g. thumbs are ready)
 		if ($content instanceof Site) {
 			foreach ($this->assets as $from=>$to) {
 				$this->copyAsset($from, $to, $write);

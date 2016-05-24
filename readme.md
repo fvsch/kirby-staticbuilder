@@ -1,7 +1,7 @@
 StaticBuilder Plugin for Kirby CMS
 ==================================
 
-**Work in progress!** Plugin that tries to convert your Kirby CMS site to static files (HTML, assets, etc.).
+A plugin for converting your Kirby CMS site to static files (HTML, assets, etc.).
 
 
 ## Installation
@@ -15,18 +15,17 @@ StaticBuilder Plugin for Kirby CMS
 
 Navigate to:
 
--   `/staticbuilder`
+-   `/staticbuilder`, or
 -   `/staticbuilder/[page-uri]`
 
 To see information about the site or a specific page, and generate the static files for this site or page.
 
+See the [configuration documentation](doc/config.md).
 
-## Current status
 
--   Pages are generated
--   Assets are copied
--   This plugin will write files to `[yourproject]/static` and should not EVER write files anywhere else.
--   There might be bugs, [look at the issues](https://github.com/fvsch/kirby-staticbuilder/issues)
+## Known issues
+
+-   When building all pages, [each controller is only executed once](https://github.com/fvsch/kirby-staticbuilder/issues/9). This is a bug in Kirby core which should be fixed soon-ish.
 
 
 ## Roadmap
