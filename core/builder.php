@@ -427,14 +427,23 @@ class Builder {
 	protected function showFatalError() {
 		$error = error_get_last();
 		// Check if last error is of type FATAL
-		if (isset($error['type']) && $error['type'] == E_ERROR) {
-			echo $this->htmlReport([
-				'error' => 'Error while building pages',
-				'summary' => $this->summary,
-				'lastPage' => $this->lastpage,
-				'errorDetails' => $error['message'] . "<br>\n"
-					. 'In ' . $error['file'] . ', line ' . $error['line']
-			]);
+		switch ($error['type']) {
+			case E_ERROR:
+			case E_CORE_ERROR:
+			case E_COMPILE_ERROR:
+			case E_USER_ERROR:
+			case E_RECOVERABLE_ERROR:
+			case E_CORE_WARNING:
+			case E_COMPILE_WARNING:
+			case E_PARSE:
+				ob_clean();
+				echo $this->htmlReport([
+					'error' => 'Error while building pages',
+					'summary' => $this->summary,
+					'lastPage' => $this->lastpage,
+					'errorDetails' => $error['message'] . "<br>\n"
+						. 'In ' . $error['file'] . ', line ' . $error['line']
+				]);
 		}
 	}
 
@@ -446,13 +455,13 @@ class Builder {
 	 */
 	public function run($content, $write=false) {
 		$this->summary = [];
+		$catchErrors = c::get('plugin.staticbuilder.catcherrors', true);
 
 		if ($write) {
 			// Kill PHP Error reporting when building pages, to "catch" PHP errors
 			// from the pages or their controllers (and plugins etc.). We're going
 			// to try to hande it ourselves
 			$level = error_reporting();
-			$catchErrors = c::get('plugin.staticbuilder.catcherrors', false);
 			if ($catchErrors) {
 				$this->shutdown = function () {
 					$this->showFatalError();
