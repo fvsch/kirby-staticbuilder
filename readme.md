@@ -13,10 +13,7 @@ Kirby StaticBuilder doesn’t change any of that. It gives you a basic HTML inte
 
 <img src="doc/html-ui.png" width="700" alt="">
 
-To get the right result for your site and needs, you may need to:
-
-1.  [tweak some options](doc/options.md) if the defaults don’t work for you;
-2.  and [follow best practices](doc/static.md) for static sites.
+Note: to get the right result for your site and needs, you may need to tweak some options.
 
 
 Installation and usage
@@ -28,10 +25,19 @@ StaticBuilder requires Kirby 2.3.
 
 2.  Enable the plugin: see the [config documentation](doc/config.md).<br>(It’s simple really, but we probably don’t want to enable it for a live website!)
 
-2.  Load `http://localhost/staticbuilder` in a web browser (where `localhost` is the domain where you can see your Kirby site; it might be different depending on the test server you use or how you configured it).<br>
+3.  Load `http://localhost/staticbuilder` in a web browser (where `localhost` is the domain where you can see your Kirby site; it might be different depending on the test server you use or how you configured it).<br>
     You should see a list of pages. Check that these are indeed pages you want to export as HTML, and tweak the [options](doc/options.md) if needed.
 
-3.  Hit the “Build” button. Hopefully things will work alright. If you have many pages (e.g. a few hundred), it might take a few seconds.
+4.  Hit the “Build” button. Hopefully things will work alright. If you have many pages (e.g. a few hundred), it might take a few seconds.
+
+Note: every time you do a full build, the content of the `static` folder will be deleted. Don’t make changes there, or you will lose this work!
+
+
+More docs
+---------
+
+-   [Best practices for static sites](doc/static.md)
+-   [StaticBuilder options documentation](doc/options.md)
 
 
 Running into bugs?
@@ -39,10 +45,9 @@ Running into bugs?
 
 See the [list of issues](https://github.com/fvsch/kirby-staticbuilder/issues), and if nothing matches please create a new one (you will need a GitHub account).
 
-
 **Known issues:**
 
--   When building all pages, [each controller is only executed once](https://github.com/fvsch/kirby-staticbuilder/issues/9). This is a bug in Kirby core which should be fixed soon-ish.
+1.  When building all pages, [each controller is only executed once](https://github.com/fvsch/kirby-staticbuilder/issues/9). This is a bug in Kirby core which should be fixed soon-ish.
 
 
 Roadmap

@@ -1,5 +1,5 @@
-Kirby StaticBuilder configuration
-=================================
+Kirby StaticBuilder options
+===========================
 
 
 StaticBuilder offers a handful of options so that you can tweak the result, depending on your taste or your technical requirements. Need to export a documentation that can be shared as a folder of files (rather than hosted on a web server)? That’s doable. Only export part of a website? Sure.
