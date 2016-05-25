@@ -1,7 +1,7 @@
 {
   "name": "staticbuilder",
   "description": "Kirby StaticBuilder Plugin",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "kirby-plugin",
   "author": "Florens Verschelde <florens@fvsch.com>",
   "license": "MIT"

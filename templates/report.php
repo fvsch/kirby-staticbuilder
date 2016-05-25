@@ -48,7 +48,7 @@ function makeRow($info, $baseUrl) {
 	$sourceKey = 'source type-' . $type;
 	if ($type == 'page' and isset($title)) {
 		$sourceHtml = "<a href=\"$baseUrl/$uri\">"
-			. "$title<br><code>$source</code></a>";
+			. "<span>$title</span><br><code>$source</code></a>";
 	}
 	else {
 		$sourceHtml = "[$type]<br><code>$source</code>";

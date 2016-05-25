@@ -32,13 +32,14 @@ class Builder {
 	protected $root;
 
 	// Config (there is a 'plugin.staticbuilder.[key]' for each one)
-	protected $outputdir = 'static';
-	protected $filename  = '.html';
-	protected $baseurl   = '/';
-	protected $assets    = ['assets', 'content', 'thumbs'];
-	protected $uglyurls  = false;
-	protected $pagefiles = false;
-	protected $filter    = null;
+	protected $outputdir  = 'static';
+	protected $baseurl    = '/';
+	protected $assets     = ['assets', 'content', 'thumbs'];
+	protected $filter     = null;
+	protected $filename   = '.html';
+	protected $uglyurls   = false;
+	protected $pagefiles  = false;
+	protected $catcherror = true;
 
 	// Callable for PHP Errors
 	public $shutdown;
@@ -75,12 +76,6 @@ class Builder {
 		}
 		$this->outputdir = $folder->root();
 
-		// File name or extension for output pages
-		if ($fn = c::get('plugin.staticbuilder.filename')) {
-			$fn = str_replace(['/', '\\'], '', $fn);
-			$this->filename = str::startsWith($fn,'.') ? $fn : '/' . $fn;
-		};
-
 		// URL root, make sure it ends with just one slash
 		$baseurl = c::get('plugin.staticbuilder.baseurl', $this->baseurl);
 		$this->baseurl = rtrim($baseurl, '/') . '/';
@@ -94,16 +89,25 @@ class Builder {
 				$this->assets[array_shift($a)] = array_shift($a);
 		}
 
+		// Filter for pages to build or ignore
+		if (is_callable($filter = c::get('plugin.staticbuilder.filter'))) {
+			$this->filter = $filter;
+		}
+
+		// File name or extension for output pages
+		if ($fn = c::get('plugin.staticbuilder.filename')) {
+			$fn = str_replace(['/', '\\'], '', $fn);
+			$this->filename = str::startsWith($fn,'.') ? $fn : '/' . $fn;
+		};
+
 		// Output ugly URLs (e.g. '/my/page/index.html')?
 		$this->uglyurls = c::get('plugin.staticbuilder.uglyurls', $this->uglyurls);
 
 		// Copy page files to a folder named after the page URL?
 		$this->pagefiles = c::get('plugin.staticbuilder.pagefiles', $this->pagefiles);
 
-		// Filter for pages to build or ignore
-		if (is_callable($filter = c::get('plugin.staticbuilder.filter'))) {
-			$this->filter = $filter;
-		}
+		// Catch PHP errors while generating pages?
+		$this->catcherror = c::get('plugin.staticbuilder.catcherror', $this->catcherror);
 	}
 
 	/**
@@ -469,14 +473,13 @@ class Builder {
 	 */
 	public function run($content, $write=false) {
 		$this->summary = [];
-		$catchErrors = c::get('plugin.staticbuilder.catcherrors', true);
 
 		if ($write) {
 			// Kill PHP Error reporting when building pages, to "catch" PHP errors
 			// from the pages or their controllers (and plugins etc.). We're going
 			// to try to hande it ourselves
 			$level = error_reporting();
-			if ($catchErrors) {
+			if ($this->catcherror) {
 				$this->shutdown = function () {
 					$this->showFatalError();
 				};
@@ -509,7 +512,7 @@ class Builder {
 		}
 
 		// Restore error reporting if building pages worked
-		if ($write && $catchErrors) {
+		if ($write && $this->catcherror) {
 			error_reporting($level);
 			$this->shutdown = function () {};
 		}

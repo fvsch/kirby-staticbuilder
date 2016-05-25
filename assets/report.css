@@ -14,6 +14,10 @@ p {
 }
 a {
     color: #0f7595;
+    text-decoration: none;
+}
+a:hover, a:focus {
+    text-decoration: underline;
 }
 @media (max-width: 1000px) {
     body { font-size: 90%; }
@@ -137,6 +141,10 @@ button.header-btn:focus {
 .pages a {
     display: block;
     text-decoration: none;
+}
+.pages a:hover span,
+.pages a:focus span {
+    text-decoration: underline;
 }
 
 @media (min-width:800px) {
