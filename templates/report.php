@@ -1,28 +1,40 @@
 <?php
 
-$main = [];
-$ignored = [];
-
 $base = explode('staticbuilder', thisUrl())[0] . 'staticbuilder';
 
+// Sort data
+$pages  = [ 'main' => [], 'ignore' => []];
+$assets = [ 'main' => [], 'ignore' => []];
 foreach ($summary as $item) {
-	if ($item['status'] == 'ignore') {
-		$ignored[] = $item;
+	$group = $item['status'] == 'ignore' ? 'ignore' : 'main';
+	if ($item['type'] == 'page') {
+		$pages[$group][] = $item;
+	} else {
+		$assets[$group][] = $item;
 	}
-	else $main[] = $item;
 }
 
-$mainCount = count($main);
-$ignoredCount = count($ignored);
-
+// Count all the things
+$activeCount = count($pages['main']) + count($assets['main']);
+$ignoredCount = count($summary) - $activeCount;
+$pagesCount = count($pages['main']) + count($pages['ignore']);
+$assetsCount = count($assets['main']) + count($assets['ignore']);
 
 function statusText($status) {
-	if ($status == 'uptodate') return 'Up to date';
-	elseif ($status == 'outdated') return 'Outdated version';
-	elseif ($status == 'missing') return 'Not generated';
-	elseif ($status == 'generated') return 'Done';
-	elseif ($status == 'done') return 'Done';
-	return $status;
+	if ($status == '') return 'Unknown';
+	$plain = [
+		'uptodate'  => 'Up to date',
+		'outdated'  => 'Outdated version',
+		'missing'   => 'Not generated',
+		'generated' => 'Done',
+		'done'      => 'Done',
+		'ignore'    => 'Skipped'
+	];
+	if (array_key_exists($status, $plain)) {
+		return $plain[$status];
+	} else {
+		return $status;
+	}
 }
 
 function showFiles($files) {
@@ -41,22 +53,49 @@ function showFiles($files) {
 	return $text;
 }
 
-function makeRow($info, $baseUrl) {
-	extract($info);
-	if (!isset($files)) $files = '';
-	$cols = [];
-	$sourceKey = 'source type-' . $type;
-	if ($type == 'page' and isset($title)) {
-		$sourceHtml = "<a href=\"$baseUrl/$uri\">"
-			. "<span>$title</span><br><code>$source</code></a>";
+/**
+ * Templating function to render a log entry as a table row
+ * @param array $info
+ * @param string $base
+ * @return string
+ */
+function makeRow($info, $base) {
+	$cols   = [];
+	$type   = a::get($info, 'type', '');
+	$source = a::get($info, 'source', '');
+	$dest   = a::get($info, 'dest', '');
+	$status = a::get($info, 'status', '');
+	$reason = a::get($info, 'reason', '');
+	$title  = a::get($info, 'title', '');
+	$uri    = a::get($info, 'uri', '');
+	$size   = a::get($info, 'size', '');
+	$files  = a::get($info, 'files', '');
+
+	// Source column
+	$sKey = 'source type-' . $type;
+	if ($type == 'page' && $status != 'ignore') {
+		$cols[$sKey] = "<a href=\"$base/$uri\"><span>$title</span><br><code>$source</code></a>";
+	}
+	elseif ($type == 'page') {
+		$cols[$sKey] = "<code>$source</code>";
 	}
 	else {
-		$sourceHtml = "[$type]<br><code>$source</code>";
+		$cols[$sKey] = "<code>[$type] $source</code>";
 	}
-	$cols[$sourceKey] = $sourceHtml;
-	$cols['dest'] = "<code>$dest</code>" . showFiles($files);
+
+	// Destination column
+	if ($status == 'ignore') {
+		$cols['dest'] = "<em>$reason</em>";
+	}
+	else {
+		$cols['dest'] = "<code>$dest</code>" . showFiles($files);
+	}
+
+	// Status column
 	$cols['status'] = statusText($status);
-	if (is_int($size)) $cols['status'] .= '<br>'.f::niceSize($size);
+	if (is_int($size)) $cols['status'] .= '<br><code>'.f::niceSize($size).'</code>';
+
+	// Make the HTML
 	$html = '';
 	foreach ($cols as $key=>$content) {
 		$html .= "<td class=\"$key\">$content</td>\n";
@@ -64,17 +103,6 @@ function makeRow($info, $baseUrl) {
 	return "<tr class=\"$type $status\">\n$html</tr>\n";
 }
 
-function makeIgnoredRow($info) {
-	extract($info);
-	$cols = [];
-	$cols['source type-' . $type] = "[$type] <code>$source</code>";
-	$cols['reason'] = $info['reason'];
-	$html = '';
-	foreach ($cols as $key=>$content) {
-		$html .= "<td class=\"$key\">$content</td>\n";
-	}
-	return "<tr class=\"$type $status\">\n$html</tr>\n";
-}
 
 ?>
 <!doctype html>
@@ -93,11 +121,8 @@ function makeIgnoredRow($info) {
 		<?php
 			if (isset($error) and $error != '') echo $error;
 			else {
-				echo ($confirm ? 'Built' : 'Found') . ' ' . count($summary) . ' elements';
-				if ($ignoredCount > 0) {
-					echo " (<a href=\"#results\">$mainCount included</a>,";
-					echo " <a href=\"#skipped\">$ignoredCount skipped</a>)";
-				}
+				echo ($confirm ? 'Built' : 'Found') . " $activeCount elements";
+				if ($ignoredCount > 0) echo " ($ignoredCount skipped)";
 			}
 		?>
 		</p>
@@ -129,45 +154,53 @@ function makeIgnoredRow($info) {
 		</blockquote>
 	</div>
 <?php endif ?>
-<?php if ($mainCount > 0): ?>
+<?php if ($assetsCount > 0): ?>
+	<h2 class="section-header">Assets</h2>
+	<table class="results results-assets">
+		<thead>
+		<tr>
+			<th>Directory or file</th>
+			<th><?php echo $confirm ? 'Copied to' : 'Copy target'; ?></th>
+			<th class="short">Status</th>
+		</tr>
+		</thead>
+		<tbody>
+		<?php foreach(array_merge($assets['main'], $assets['ignore']) as $item) {
+			echo makeRow($item, $base);
+		} ?>
+		</tbody>
+	</table>
+<?php endif ?>
+<?php if ($pagesCount > 0): ?>
+	<?php if ($mode != 'page'): ?>
+		<h2 class="section-header">Pages</h2>
+	<?php endif ?>
 	<?php if (isset($errorDetails)): ?>
 	<p>
 		The following pages and files were built without errors.<br>
 		<strong>Important:</strong> the script was stopped, so the next pages in the queue were NOT built.
 	</p>
 	<?php endif ?>
-	<table id="results" class="pages">
+	<table class="results results-pages">
 		<thead>
 		<tr>
-			<th>Source</th>
+			<th>Page source</th>
 			<th><?php echo $confirm ? 'Output' : 'Output target'; ?></th>
 			<th class="short">Status</th>
 		</tr>
 		</thead>
 		<tbody>
-		<?php foreach($main as $item) {
+		<?php foreach(array_merge($pages['main'], $pages['ignore']) as $item) {
 			echo makeRow($item, $base);
 		} ?>
 		</tbody>
 	</table>
 <?php endif ?>
-<?php if ($ignoredCount > 0): ?>
-	<h2 id="skipped">These pages or files were skipped</h2>
-	<table class="pages">
-		<thead>
-		<tr>
-			<th>Source</th>
-			<th>Skipped because</th>
-		</tr>
-		</thead>
-		<tbody>
-		<?php foreach($ignored as $item) {
-			echo makeIgnoredRow($item);
-		} ?>
-		</tbody>
-	</table>
-<?php endif ?>
 </main>
+
+<script>
+<?php echo $script; ?>
+</script>
 
 </body>
 </html>
