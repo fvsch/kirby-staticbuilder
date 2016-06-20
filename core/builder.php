@@ -31,6 +31,9 @@ class Builder {
 	// Project root
 	protected $root;
 
+	// Language codes
+	protected $langs = [];
+
 	// Config (there is a 'plugin.staticbuilder.[key]' for each one)
 	protected $outputdir  = 'static';
 	protected $baseurl    = '/';
@@ -59,6 +62,14 @@ class Builder {
 
 		// Project root
 		$this->root = $this->kirby->roots()->index;
+
+		// Multilingual
+		if ($this->kirby->site()->multilang()) {
+			foreach ($this->kirby->site()->languages() as $language) {
+				$this->langs[] = $language->code();
+			}
+		}
+		else $this->langs[] = null;
 
 		// Ouptut directory
 		$dir = c::get('plugin.staticbuilder.outputdir', $this->outputdir);
@@ -98,7 +109,7 @@ class Builder {
 		if ($fn = c::get('plugin.staticbuilder.filename')) {
 			$fn = str_replace(['/', '\\'], '', $fn);
 			$this->filename = str::startsWith($fn,'.') ? $fn : '/' . $fn;
-		};
+		}
 
 		// Output ugly URLs (e.g. '/my/page/index.html')?
 		$this->uglyurls = c::get('plugin.staticbuilder.uglyurls', $this->uglyurls);
@@ -275,45 +286,65 @@ class Builder {
 	/**
 	 * Write the HTML for a page and copy its files
 	 * @param Page $page
-	 * @param string $lang Page language code
 	 * @param bool $write Should we write files or just report info (dry-run).
-	 * @return array
 	 */
-	protected function buildPage(Page $page, $lang=null, $write=false) {
+	protected function buildPage(Page $page, $write=false) {
+        // Check if we will build this page and report why not
+        if (!$this->filterPage($page)) {
+			$log = [
+				'type'   => 'page',
+				'source' => 'content/'.$page->diruri(),
+				'status' => 'ignore',
+				'reason' => $this->filter == null ? 'Page has no text file' : 'Excluded by custom filter',
+				'dest'   => null,
+				'size'   => null
+			];
+            $this->summary[] = $log;
+			return;
+        }
+
+		// Build the HTML for each language version of the page
+		foreach ($this->langs as $lang) {
+			$this->buildPageVersion(clone $page, $lang, $write);
+		}
+	}
+
+    /**
+     * Write the HTML for a page’s language version
+     * @param Page $page
+     * @param string $lang Page language code
+     * @param bool $write Should we write files or just report info (dry-run).
+     * @return array
+     */
+    protected function buildPageVersion(Page $page, $lang=null, $write=false) {
+		// Clear the cached data (especially the $page->content object)
+		// or we will end up with the first language's content for all pages
+		$page->reset();
+
+		// Update the current language and active page
+		if ($lang) $page->site->language = $page->site->language($lang);
+		$page->site()->visit($page->uri(), $lang);
+
+		// Let's get some metadata
+		$source = $page->textfile(null, $lang);
+		$source = ltrim(str_replace($this->root, '', $source), DS);
+		$file   = $this->pageFilename($page, $lang);
+		// Store reference to this page in case there's a fatal error
+		$this->lastpage = $source;
+
 		$log = [
 			'type'   => 'page',
 			'status' => '',
-			'reason' => '',
-			'source' => 'content/' . $page->diruri(),
-			'dest'   => null,
+			'source' => $source,
+			'dest'   => str_replace($this->outputdir, 'static', $file),
 			'size'   => null,
-			// Specific to pages
-			'title'  => $page->title()->value,
+			'title'  => $page->content($lang)->title()->value,
 			'uri'    => $page->uri(),
-			'lang'   => $lang,
 			'files'  => []
 		];
 
-		// Run 'visit' early to get the right URL on multilang sites
-		$this->kirby->site()->visit($page->uri(), $lang);
-
-		// Make filename based on our own logic + user config
-		$file = $this->pageFilename($page);
-		$log['dest'] = str_replace($this->outputdir, 'static', $file);
-
-		// Store reference to this page in case there's a fatal error
-		$this->lastpage = $log['source'];
-
-		// Check if we will build this page and report why not
-		if (!$this->filterPage($page)) {
-			$log['status'] = 'ignore';
-			if ($this->filter == null) $log['reason'] = 'Page has no text file';
-			else $log['reason'] = 'Excluded by custom filter';
-			return $this->summary[] = $log;
-		}
-
+		// If not writing, let's report on the existing target page
 		if ($write == false) {
-			// Get status of output path
 			if (is_file($file)) {
 				$outdated = filemtime($file) < $page->modified();
 				$log['status'] = $outdated ? 'outdated' : 'uptodate';
@@ -325,28 +356,29 @@ class Builder {
 			if ($this->pagefiles) {
 				$log['files'] = $page->files()->count();
 			}
-			// Get number of files
 			return $this->summary[] = $log;
 		}
 
 		// Render page
 		$text = $this->kirby->render($page, [], false);
-		$text = $this->rewriteUrls($text, $page->url());
-
+		$text = $this->rewriteUrls($text, $page->url($lang));
 		f::write($file, $text);
 		$log['size'] = strlen($text);
 		$log['status'] = 'generated';
+		header_remove();
 
-		// Copy page files in a folder
+		// Option: Copy page files in a folder
 		if ($this->pagefiles) {
-			$dir = ltrim(str_replace(static::URLPREFIX, '', $page->url()), '/');
+			$dir = str_replace(static::URLPREFIX, '', $page->url($lang));
 			$dir = $this->normalizePath($this->outputdir . DS . $dir);
 			foreach ($page->files() as $f) {
 				$dest = $dir . DS . $f->filename();
-				$done = $f->copy($dest);
-				if ($done) $log['files'][] = str_replace($this->outputdir, 'static', $dest);
+				if ($f->copy($dest)) {
+					$log['files'][] = str_replace($this->outputdir, 'static', $dest);
+				}
 			}
 		}
+
 		return $this->summary[] = $log;
 	}
 
@@ -394,7 +426,7 @@ class Builder {
 
 		// Get type of asset
 		if (is_dir($source)) {
-			$log['type'] = 'folder';
+			$log['type'] = 'dir';
 		}
 		elseif (is_file($source)) {
 			$log['type'] = 'file';
@@ -405,7 +437,7 @@ class Builder {
 		}
 
 		// Copy a folder
-		if ($write && $log['type'] == 'folder') {
+		if ($write && $log['type'] == 'dir') {
 			$source = new Folder($source);
 			$existing = new Folder($target);
 			if ($existing->exists()) $existing->remove();
@@ -473,6 +505,7 @@ class Builder {
 	 */
 	public function run($content, $write=false) {
 		$this->summary = [];
+		$this->kirby->cache()->flush();
 
 		if ($write) {
 			// Kill PHP Error reporting when building pages, to "catch" PHP errors
@@ -494,14 +527,9 @@ class Builder {
 			$folder->flush();
 		}
 
-		// Build each page several times for multilingual sites
+		// Build each page (possibly several times for multilingual sites)
 		foreach($this->getPages($content) as $page) {
-			if ($this->kirby->site->multilang()) {
-				foreach($this->kirby->site->languages() as $lang) {
-					$this->buildPage($page, $lang->code(), $write);
-				}
-			}
-			else $this->buildPage($page, null, $write);
+			$this->buildPage($page, $write);
 		}
 
 		// Copy assets after building pages (so that e.g. thumbs are ready)
@@ -529,8 +557,10 @@ class Builder {
 		// templates, controllers or plugins when rendering pages.
 		header_remove();
 		$css = __DIR__ . DS . '..' . DS . 'assets' . DS . 'report.css';
+		$js  = __DIR__ . DS . '..' . DS . 'assets' . DS . 'report.js';
 		$tpl = __DIR__ . DS . '..' . DS . 'templates' . DS . 'report.php';
 		$data['styles'] = file_get_contents($css);
+		$data['script'] = file_get_contents($js);
 		$body = tpl::load($tpl, $data);
 		return new Response($body, 'html', $data['error'] ? 500 : 200);
 	}
