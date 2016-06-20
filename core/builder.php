@@ -289,8 +289,8 @@ class Builder {
 	 * @param bool $write Should we write files or just report info (dry-run).
 	 */
 	protected function buildPage(Page $page, $write=false) {
-        // Check if we will build this page and report why not
-        if (!$this->filterPage($page)) {
+		// Check if we will build this page and report why not
+		if (!$this->filterPage($page)) {
 			$log = [
 				'type'   => 'page',
 				'source' => 'content/'.$page->diruri(),
@@ -299,9 +299,9 @@ class Builder {
 				'dest'   => null,
 				'size'   => null
 			];
-            $this->summary[] = $log;
+			$this->summary[] = $log;
 			return;
-        }
+		}
 
 		// Build the HTML for each language version of the page
 		foreach ($this->langs as $lang) {
@@ -309,14 +309,14 @@ class Builder {
 		}
 	}
 
-    /**
-     * Write the HTML for a page’s language version
-     * @param Page $page
-     * @param string $lang Page language code
-     * @param bool $write Should we write files or just report info (dry-run).
-     * @return array
-     */
-    protected function buildPageVersion(Page $page, $lang=null, $write=false) {
+	/**
+	 * Write the HTML for a page’s language version
+	 * @param Page $page
+	 * @param string $lang Page language code
+	 * @param bool $write Should we write files or just report info (dry-run).
+	 * @return array
+	 */
+	protected function buildPageVersion(Page $page, $lang=null, $write=false) {
 		// Clear the cached data (especially the $page->content object)
 		// or we will end up with the first language's content for all pages
 		$page->reset();
