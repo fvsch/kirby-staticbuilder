@@ -2,6 +2,7 @@ StaticBuilder Plugin for Kirby CMS
 ==================================
 
 Converts your Kirby CMS site to static files (HTML, assets, etc.).
+Supports multilingual websites.
 
 
 How it works
@@ -47,7 +48,9 @@ See the [list of issues](https://github.com/fvsch/kirby-staticbuilder/issues), a
 
 **Known issues:**
 
-1.  When building all pages, [each controller is only executed once](https://github.com/fvsch/kirby-staticbuilder/issues/9). This is a bug in Kirby core which should be fixed soon-ish.
+1.	Building a lot of pages, or sometimes just a few pages, can be intensive. For instance if you’re making a lot of *thumbs* (resizing images in PHP) the script can time out; try visiting those pages first to build the thumbs, and start the static build after that.
+
+2.  When building all pages, [each controller is only executed once](https://github.com/fvsch/kirby-staticbuilder/issues/9). This is a bug in Kirby core which should be fixed soon-ish.
 
 
 Roadmap
