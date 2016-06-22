@@ -155,7 +155,9 @@ function makeRow($info, $base) {
 	</div>
 <?php endif ?>
 <?php if ($assetsCount > 0): ?>
-	<h2 class="section-header">Assets</h2>
+	<h2 class="section-header">
+		<span>Assets</span>
+	</h2>
 	<table class="results results-assets">
 		<thead>
 		<tr>
@@ -173,7 +175,9 @@ function makeRow($info, $base) {
 <?php endif ?>
 <?php if ($pagesCount > 0): ?>
 	<?php if ($mode != 'page'): ?>
-		<h2 class="section-header">Pages</h2>
+		<h2 class="section-header">
+			<span>Pages</span>
+		</h2>
 	<?php endif ?>
 	<?php if (isset($errorDetails)): ?>
 	<p>

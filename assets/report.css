@@ -30,6 +30,7 @@ header h1 {
 	text-transform: lowercase;
 }
 header p {
+	margin-top: .3em;
 	margin-bottom: 0;
 }
 header .error {
@@ -114,11 +115,18 @@ button.header-btn:focus {
 }
 .section-header {
 	margin: 2.5em 0;
+	border-top: solid 1px;
 	text-align: center;
 	font-size: 110%;
 	font-weight: normal;
 	text-transform: uppercase;
 	letter-spacing: .2em;
+}
+.section-header span {
+	display: table;
+	margin: -.7em auto;
+	padding: 0 1em;
+	background-color: #fff;
 }
 .results {
 	margin: 2em 0;
@@ -171,6 +179,7 @@ button.header-btn:focus {
 }
 .results .ignore-header td {
 	text-align: center;
+	padding: 10px;
 }
 .results .ignore-header button {
 	min-width: 60%;
