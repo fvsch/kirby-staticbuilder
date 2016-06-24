@@ -61,7 +61,7 @@ class Builder {
 		$this->kirby = $this->kirbyInstance();
 
 		// Project root
-		$this->root = $this->kirby->roots()->index;
+		$this->root = $this->normalizeSlashes($this->kirby->roots()->index);
 
 		// Multilingual
 		if ($this->kirby->site()->multilang()) {
@@ -73,7 +73,7 @@ class Builder {
 
 		// Ouptut directory
 		$dir = c::get('plugin.staticbuilder.outputdir', $this->outputdir);
-		$dir = $this->isAbsolutePath($dir) ? $dir : $this->root . DS . $dir;
+		$dir = $this->isAbsolutePath($dir) ? $dir : $this->root . '/' . $dir;
 		$folder = new Folder($this->normalizePath($dir));
 
 		if ($folder->name() !== 'static') {
@@ -154,8 +154,8 @@ class Builder {
 	 * @param string $sep Path separator to use in output
 	 * @return string
 	 */
-	protected function normalizePath($path, $sep=DS) {
-		$path = preg_replace('/[\\/\\\]+/', $sep, $path);
+	protected function normalizePath($path, $sep='/') {
+		$path = $this->normalizeSlashes($path, $sep);
 		$out = [];
 		foreach (explode($sep, $path) as $i => $fold) {
 			if ($fold == '..' && $i > 0 && end($out) != '..') array_pop($out);
@@ -164,6 +164,17 @@ class Builder {
 			else $out[] = $fold;
 		}
 		return ($path[0] == $sep ? $sep : '') . join($sep, $out);
+	}
+
+	/**
+	 * Normalize slashes in a string to use forward slashes only
+	 * @param string $str
+	 * @param string $sep
+	 * @return string
+	 */
+	function normalizeSlashes($str, $sep='/') {
+		$result = preg_replace('/[\\/\\\]+/', $sep, $str);
+		return $result === null ? '' : $result;
 	}
 
 	/**
@@ -194,7 +205,7 @@ class Builder {
 	protected function filterPath($absolutePath) {
 		// Unresolved paths with '..' are invalid
 		if (str::contains($absolutePath, '..')) return false;
-		return str::startsWith($absolutePath, $this->outputdir . DS);
+		return str::startsWith($absolutePath, $this->outputdir . '/');
 	}
 
 	/**
@@ -273,7 +284,7 @@ class Builder {
 	 */
 	protected function pageFilename(Page $page, $lang=null) {
 		$url  = ltrim(str_replace(static::URLPREFIX, '', $page->url($lang)));
-		$base = $this->outputdir . DS . $url;
+		$base = $this->outputdir . '/' . $url;
 		if ($base == '' || $base == '/') $file = $base . 'index.html';
 		else $file = $base . $this->filename;
 		$file = $this->normalizePath($file);
@@ -326,8 +337,8 @@ class Builder {
 		$page->site()->visit($page->uri(), $lang);
 
 		// Let's get some metadata
-		$source = $page->textfile(null, $lang);
-		$source = ltrim(str_replace($this->root, '', $source), DS);
+		$source = $this->normalizePath($page->textfile(null, $lang));
+		$source = ltrim(str_replace($this->root, '', $source), '/');
 		$file   = $this->pageFilename($page, $lang);
 		// Store reference to this page in case there's a fatal error
 		$this->lastpage = $source;
@@ -370,9 +381,9 @@ class Builder {
 		// Option: Copy page files in a folder
 		if ($this->pagefiles) {
 			$dir = str_replace(static::URLPREFIX, '', $page->url($lang));
-			$dir = $this->normalizePath($this->outputdir . DS . $dir);
+			$dir = $this->normalizeSlashes($this->outputdir . '/' . $dir);
 			foreach ($page->files() as $f) {
-				$dest = $dir . DS . $f->filename();
+				$dest = $dir . '/' . $f->filename();
 				if ($f->copy($dest)) {
 					$log['files'][] = str_replace($this->outputdir, 'static', $dest);
 				}
@@ -412,17 +423,17 @@ class Builder {
 		if ($this->isAbsolutePath($from)) {
 			$source = $from;
 		} else {
-			$source = $this->normalizePath($this->root . DS . $from);
+			$source = $this->normalizePath($this->root . '/' . $from);
 		}
 
 		// But target is always relative to static dir
-		$target = $this->normalizePath($this->outputdir . DS . $to);
+		$target = $this->normalizePath($this->outputdir . '/' . $to);
 		if ($this->filterPath($target) == false) {
 			$log['status'] = 'ignore';
 			$log['reason'] = 'Cannot copy asset outside of the static folder';
 			return $this->summary[] = $log;
 		}
-		$log['dest'] .= str_replace($this->outputdir . DS, '', $target);
+		$log['dest'] .= str_replace($this->outputdir . '/', '', $target);
 
 		// Get type of asset
 		if (is_dir($source)) {
@@ -556,9 +567,9 @@ class Builder {
 		// Forcefully remove headers that might have been set by some
 		// templates, controllers or plugins when rendering pages.
 		header_remove();
-		$css = __DIR__ . DS . '..' . DS . 'assets' . DS . 'report.css';
-		$js  = __DIR__ . DS . '..' . DS . 'assets' . DS . 'report.js';
-		$tpl = __DIR__ . DS . '..' . DS . 'templates' . DS . 'report.php';
+		$css = PLUGIN_ROOT . '/assets/report.css';
+		$js  = PLUGIN_ROOT . '/assets/report.js';
+		$tpl = PLUGIN_ROOT . '/templates/report.php';
 		$data['styles'] = file_get_contents($css);
 		$data['script'] = file_get_contents($js);
 		$body = tpl::load($tpl, $data);

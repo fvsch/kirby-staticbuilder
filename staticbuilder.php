@@ -8,8 +8,10 @@ if (c::get('plugin.staticbuilder.enabled', false)) {
 		throw new Exception('Twig plugin requires Kirby 2.3 or higher. Current version: ' . $kirby->version());
 	}
 
-	require_once __DIR__ . DS . 'core' . DS . 'builder.php';
-	require_once __DIR__ . DS . 'core' . DS . 'actions.php';
+	define('PLUGIN_ROOT', __DIR__);
+
+	require_once PLUGIN_ROOT . '/core/builder.php';
+	require_once PLUGIN_ROOT . '/core/actions.php';
 
 	$kirby->set('route', [
 		'pattern' => 'staticbuilder',
