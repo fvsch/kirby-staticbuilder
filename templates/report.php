@@ -21,7 +21,7 @@ $pagesCount = count($pages['main']) + count($pages['ignore']);
 $assetsCount = count($assets['main']) + count($assets['ignore']);
 
 function statusText($status) {
-	if ($status == '') return 'Unknown';
+	if ($status == '') return '-';
 	$plain = [
 		'uptodate'  => 'Up to date',
 		'outdated'  => 'Outdated version',
@@ -103,7 +103,6 @@ function makeRow($info, $base) {
 	return "<tr class=\"$type $status\">\n$html</tr>\n";
 }
 
-
 ?>
 <!doctype html>
 <html lang="en">
@@ -130,7 +129,7 @@ function makeRow($info, $base) {
 	<div class="header-col header-col--side">
 		<?php if ($mode == 'page'): ?>
 			<a class="header-btn" href="<?php echo $base ?>">show all pages</a>
-		<?php endif ?>
+		<?php endif; ?>
 		<form method="post" action="">
 			<input type="hidden" name="confirm" value="1">
 			<button class="header-btn" type="submit">
@@ -143,17 +142,32 @@ function makeRow($info, $base) {
 <main>
 <?php if (isset($errorDetails)): ?>
 	<div class="error-msg">
-		<?php if (isset($lastPage)): ?>
-			<h2>
-				Failed to build page:
-				<?php echo $lastPage ? "<code>$lastPage</code>" : 'unknown'; ?>
-			</h2>
-		<?php endif ?>
+		<h2>
+			Failed to build page
+			<?php if (isset($lastPage)) echo '<code>'.$lastPage.'</code>'; ?>
+		</h2>
 		<blockquote>
 			<?php echo $errorDetails ?>
 		</blockquote>
+		<h2>Build status</h2>
+		<ul>
+			<li><?php echo $pagesCount ?> page(s) were built without errors.</li>
+			<li>Next pages in the queue were <em>not</em> built, and assets not copied over.</li>
+		</ul>
+		<?php if (strpos($errorDetails, 'execution time') !== false): ?>
+		<h2>What can I do?</h2>
+		<p>
+			It looks like the build process timed out. Are you building many pages (hundreds perhaps?)
+			or building many thumb images?
+		</p>
+		<p>
+			In many situations, <strong>restarting the build once</strong> or even twice fixes the issue. You could try that,
+			and check if you’re making progress (more pages getting built). Note that you can also build pages
+			individually (going to <code>/staticbuilder/page-uri</code>).
+		</p>
+		<?php endif; ?>
 	</div>
-<?php endif ?>
+<?php endif; ?>
 <?php if ($assetsCount > 0): ?>
 	<h2 class="section-header">
 		<span>Assets</span>
@@ -172,19 +186,13 @@ function makeRow($info, $base) {
 		} ?>
 		</tbody>
 	</table>
-<?php endif ?>
+<?php endif; ?>
 <?php if ($pagesCount > 0): ?>
 	<?php if ($mode != 'page'): ?>
 		<h2 class="section-header">
 			<span>Pages</span>
 		</h2>
-	<?php endif ?>
-	<?php if (isset($errorDetails)): ?>
-	<p>
-		The following pages and files were built without errors.<br>
-		<strong>Important:</strong> the script was stopped, so the next pages in the queue were NOT built.
-	</p>
-	<?php endif ?>
+	<?php endif; ?>
 	<table class="results results-pages">
 		<thead>
 		<tr>
@@ -199,7 +207,7 @@ function makeRow($info, $base) {
 		} ?>
 		</tbody>
 	</table>
-<?php endif ?>
+<?php endif; ?>
 </main>
 
 <script>
