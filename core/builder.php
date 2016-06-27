@@ -87,9 +87,8 @@ class Builder {
 		}
 		$this->outputdir = $folder->root();
 
-		// URL root, make sure it ends with just one slash
-		$baseurl = c::get('plugin.staticbuilder.baseurl', $this->baseurl);
-		$this->baseurl = rtrim($baseurl, '/') . '/';
+		// URL root
+		$this->baseurl = c::get('plugin.staticbuilder.baseurl', $this->baseurl);
 
 		// Normalize assets config
 		$assets = c::get('plugin.staticbuilder.assets', $this->assets);
