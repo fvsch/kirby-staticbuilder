@@ -19,11 +19,8 @@ a {
 a:hover, a:focus {
 	text-decoration: underline;
 }
-@media (max-width: 1000px) {
-	body { font-size: 90%; }
-}
 header {
-	margin: 20px 0 40px;
+	margin: 15px 0 35px;
 }
 header h1 {
 	margin: 0;
@@ -65,34 +62,6 @@ button.header-btn {
 button.header-btn:hover,
 button.header-btn:focus {
 	color: red;
-}
-@media (max-width:799px) {
-	.header-btn {
-		font-size: 100%;
-	}
-	.header-col--side {
-		margin-top: 20px;
-		display: flex;
-	}
-	.header-col--side a {
-		order: 2;
-	}
-}
-@media (min-width:800px) {
-	header {
-		display: table;
-		width: 100%;
-		margin-top: 30px;
-	}
-	.header-col {
-		display: table-cell;
-		vertical-align: middle;
-	}
-	.header-col--side {
-		margin: 0;
-		padding-left: 40px;
-		text-align: right;
-	}
 }
 .icon {
 	width: 1.5em;
@@ -187,11 +156,11 @@ button.header-btn:focus {
 	height: 2.5em;
 }
 .results .short {
-	width: 12%;
+	width: 14%;
 	min-width: 80px;
 }
 .results .shorter {
-	width: 6%;
+	width: 8%;
 	min-width: 60px;
 }
 .results code {
@@ -240,7 +209,36 @@ button.header-btn:focus {
 }
 
 
+@media (max-width:799px) {
+	body {
+		font-size: 90%;
+	}
+	.header-btn {
+		font-size: 100%;
+	}
+	.header-col--side {
+		margin-top: 20px;
+		display: flex;
+	}
+	.header-col--side a {
+		order: 2;
+	}
+}
 @media (min-width:800px) {
+	header {
+		display: table;
+		width: 100%;
+		margin-top: 20px;
+	}
+	.header-col {
+		display: table-cell;
+		vertical-align: middle;
+	}
+	.header-col--side {
+		margin: 0;
+		padding-left: 40px;
+		text-align: right;
+	}
 	.error-msg {
 		margin: 40px 0;
 		padding: 15px 50px;
