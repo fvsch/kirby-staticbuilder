@@ -74,7 +74,9 @@ function makeRow($info, $base) {
 	// Source column
 	$sKey = 'source type-' . $type;
 	if ($type == 'page' && $status != 'ignore') {
-		$cols[$sKey] = "<a href=\"$base/$uri\"><span>$title</span><br><code>$source</code></a>";
+		$cols[$sKey] = "<a href=\"$base/$uri\">" .
+			($title ? "<span>$title</span><br>" : '') .
+			"<code>$source</code></a>";
 	}
 	elseif ($type == 'page') {
 		$cols[$sKey] = "<code>$source</code>";
@@ -133,7 +135,7 @@ function makeRow($info, $base) {
 		<form method="post" action="">
 			<input type="hidden" name="confirm" value="1">
 			<button class="header-btn" type="submit">
-				build <?= $mode == 'page' ? 'this page' : 'everything&thinsp;!' ?>
+				build <?= $mode == 'page' ? 'this page' : 'everything' ?>
 			</button>
 		</form>
 	</div>

@@ -276,7 +276,7 @@ class Builder {
 	}
 
 	/**
-	 * Generate the file path where a page should be written
+	 * Generate the file path that a page should be written to
 	 * @param Page $page
 	 * @param string|null $lang
 	 * @return string
@@ -285,13 +285,21 @@ class Builder {
 	protected function pageFilename(Page $page, $lang=null) {
 		$url  = ltrim(str_replace(static::URLPREFIX, '', $page->url($lang)));
 		$base = $this->outputdir . '/' . $url;
-		if ($base == '' || $base == '/') $file = $base . 'index.html';
-		else $file = $base . $this->filename;
-		$file = $this->normalizePath($file);
-		if ($this->filterPath($file) == false) {
+		$file = $base . $this->filename;
+		// Special case: home page
+		if ($base == '' || $base == '/') {
+			$file = $base . 'index.html';
+		}
+		// Don’t add any extension if we already have one (using a short
+		// whitelist for possible use cases).
+		elseif (preg_match('/\.(js|json|css|txt|svg|xml|atom|rss)$/i', $base)) {
+			$file = $base;
+		}
+		$validPath = $this->normalizePath($file);
+		if ($this->filterPath($validPath) == false) {
 			throw new Exception('Output path for page goes outside of static directory: ' . $file);
 		}
-		return $file;
+		return $validPath;
 	}
 
 	/**
@@ -349,7 +357,7 @@ class Builder {
 			'source' => $source,
 			'dest'   => str_replace($this->outputdir, 'static', $file),
 			'size'   => null,
-			'title'  => $page->content($lang)->title()->value,
+			'title'  => $page->title()->value,
 			'uri'    => $page->uri(),
 			'files'  => []
 		];
