@@ -243,7 +243,7 @@ class Builder {
 		if ($relative || $this->uglyurls) {
 			// Match restrictively urls starting with prefix, and which are
 			// correctly escaped (no whitespace or quotes).
-			$find = preg_quote(static::URLPREFIX) . '(\/?[^<>{}"\'\s]*)';
+			$find = preg_quote(static::URLPREFIX) . '(\/?[^\?\&<>{}"\'\s]*)';
 			$text = preg_replace_callback(
 				"!$find!",
 				function($found) use ($pageUrl, $relative) {
