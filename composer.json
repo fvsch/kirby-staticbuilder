@@ -1,0 +1,15 @@
+{
+  "name": "fvsch/kirby-staticbuilder",
+  "description": "Static HTML exporter for Kirby CMS",
+  "license": "MIT",
+  "homepage": "https://github.com/fvsch/kirby-staticbuilder/",
+  "authors": [
+    {
+      "name": "Florens Verschelde",
+      "email": "florens@fvsch.com"
+    }
+  ],
+  "require": {
+    "php": ">=5.4.0"
+  }
+}
