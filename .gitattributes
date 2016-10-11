@@ -1,0 +1,4 @@
+.gitattributes  export-ignore
+.editorconfig   export-ignore
+composer.json   export-ignore
+package.json    export-ignore
