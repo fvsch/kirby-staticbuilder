@@ -1,4 +1,6 @@
 .gitattributes  export-ignore
 .editorconfig   export-ignore
 composer.json   export-ignore
-package.json    export-ignore
+# Composer doesnt mind if we don't include the composer.json in the archive,
+# but Kirby's CLI tool does (Invalid Kirby Plugin Type)
+# package.json  export-ignore
