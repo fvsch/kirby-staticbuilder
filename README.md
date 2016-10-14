@@ -34,11 +34,11 @@ StaticBuilder requires Kirby 2.3.
 Note: every time you do a full build, the content of the `static` folder will be deleted. Don’t make changes there, or you will lose this work!
 
 
-More docs
----------
+Documentation
+-------------
 
 -   [Best practices for static sites][DOC_STATIC]
--   [StaticBuilder options documentation][DOC_OPTIONS]
+-   [StaticBuilder options][DOC_OPTIONS]
 
 
 Running into bugs?
@@ -48,9 +48,7 @@ See the [list of issues][ISSUES], and if nothing matches please create a new one
 
 **Known issues:**
 
-1.	Building a lot of pages, or sometimes just a few pages, can be intensive. For instance if you’re making a lot of *thumbs* (resizing images in PHP) the script can time out; try visiting those pages first to build the thumbs, and start the static build after that.
-
-2.  When building all pages, [each controller is only executed once](https://github.com/fvsch/kirby-staticbuilder/issues/9). This is a bug in Kirby core which should be fixed soon-ish.
+-   Building a lot of pages, or sometimes just a few pages, can be intensive. For instance if you’re making a lot of *thumbs* (resizing images in PHP) the script can time out; try visiting those pages first to build the thumbs, and start the static build after that.
 
 
 [DOC_STATIC]: doc/static.md
