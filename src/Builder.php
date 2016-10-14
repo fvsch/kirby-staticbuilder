@@ -91,10 +91,9 @@ class Builder
         // Normalize assets config
         $assets = C::get('plugin.staticbuilder.assets', $this->assets);
         $this->assets = [];
-        foreach ($assets as $a) {
-            if (is_string($a)) $this->assets[$a] = $a;
-            elseif (is_array($a) && count($a) > 1)
-                $this->assets[array_shift($a)] = array_shift($a);
+        foreach ($assets as $key=>$dest) {
+            if (!is_string($dest)) continue;
+            $this->assets[ is_string($key) ? $key : $dest ] = $dest;
         }
 
         // Filter for pages to build or ignore
