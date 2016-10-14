@@ -1,6 +1,6 @@
 <?php
 
-namespace Kirby\Plugin\StaticBuilder;
+namespace Kirby\StaticBuilder;
 
 use C;
 use Exception;
@@ -31,15 +31,14 @@ class Builder
     // Language codes
     protected $langs = [];
 
-    // Config (there is a 'plugin.staticbuilder.[key]' for each one)
+    // Config (there is a 'staticbuilder.[key]' for each one)
     protected $outputdir  = 'static';
     protected $baseurl    = '/';
     protected $assets     = ['assets', 'content', 'thumbs'];
+    protected $extension  = '.html';
     protected $filter     = null;
-    protected $filename   = '.html';
     protected $uglyurls   = false;
-    protected $pagefiles  = false;
-    protected $catcherror = true;
+    protected $pagefiles = false;
 
     // Callable for PHP Errors
     public $shutdown;
@@ -70,7 +69,7 @@ class Builder
         else $this->langs[] = null;
 
         // Ouptut directory
-        $dir = C::get('plugin.staticbuilder.outputdir', $this->outputdir);
+        $dir = C::get('staticbuilder.outputdir', $this->outputdir);
         $dir = $this->isAbsolutePath($dir) ? $dir : $this->root . '/' . $dir;
         $folder = new Folder($this->normalizePath($dir));
 
@@ -86,10 +85,10 @@ class Builder
         $this->outputdir = $folder->root();
 
         // URL root
-        $this->baseurl = C::get('plugin.staticbuilder.baseurl', $this->baseurl);
+        $this->baseurl = C::get('staticbuilder.baseurl', $this->baseurl);
 
         // Normalize assets config
-        $assets = C::get('plugin.staticbuilder.assets', $this->assets);
+        $assets = C::get('staticbuilder.assets', $this->assets);
         $this->assets = [];
         foreach ($assets as $key=>$dest) {
             if (!is_string($dest)) continue;
@@ -97,24 +96,25 @@ class Builder
         }
 
         // Filter for pages to build or ignore
-        if (is_callable($filter = C::get('plugin.staticbuilder.filter'))) {
+        if (is_callable($filter = C::get('staticbuilder.filter'))) {
             $this->filter = $filter;
         }
 
         // File name or extension for output pages
-        if ($fn = C::get('plugin.staticbuilder.filename')) {
-            $fn = str_replace(['/', '\\'], '', $fn);
-            $this->filename = Str::startsWith($fn,'.') ? $fn : '/' . $fn;
+        if ($ext = C::get('staticbuilder.extension')) {
+            $ext = trim(str_replace('\\', '/', $ext));
+            if (in_array(substr($ext, 0, 1), ['/', '.'])) {
+                $this->extension = $ext;
+            } else {
+                $this->extension = '.' . $ext;
+            }
         }
 
         // Output ugly URLs (e.g. '/my/page/index.html')?
-        $this->uglyurls = C::get('plugin.staticbuilder.uglyurls', $this->uglyurls);
+        $this->uglyurls = C::get('staticbuilder.uglyurls', $this->uglyurls);
 
         // Copy page files to a folder named after the page URL?
-        $this->pagefiles = C::get('plugin.staticbuilder.pagefiles', $this->pagefiles);
-
-        // Catch PHP errors while generating pages?
-        $this->catcherror = C::get('plugin.staticbuilder.catcherror', $this->catcherror);
+        $this->pagefiles = C::get('staticbuilder.pagefiles', $this->pagefiles);
     }
 
     /**
@@ -255,11 +255,11 @@ class Builder
                             $url = rtrim($url, '/') . '/index.html';
                         }
                         elseif (!Str::endsWith($url, '/') && !pathinfo($url, PATHINFO_EXTENSION)) {
-                            $url .= $this->filename;
+                            $url .= $this->extension;
                         }
                     }
                     if ($relative) {
-                        $pageUrl .= $this->filename;
+                        $pageUrl .= $this->extension;
                         $pageUrl = str_replace(static::URLPREFIX, '', $pageUrl);
                         $url = str_replace(static::URLPREFIX, '', $url);
                         $url = $this->relativeUrl($pageUrl, $url);
@@ -296,7 +296,7 @@ class Builder
             $file = $this->outputdir . '/' . $url;
         }
         else {
-            $file = $this->outputdir . '/' . $url . $this->filename;
+            $file = $this->outputdir . '/' . $url . $this->extension;
         }
         $validPath = $this->normalizePath($file);
         if ($this->filterPath($validPath) == false) {
@@ -534,19 +534,18 @@ class Builder
     {
         $this->summary = [];
         $this->kirby->cache()->flush();
+        $level = 1;
 
         if ($write) {
             // Kill PHP Error reporting when building pages, to "catch" PHP errors
             // from the pages or their controllers (and plugins etc.). We're going
             // to try to hande it ourselves
             $level = error_reporting();
-            if ($this->catcherror) {
-                $this->shutdown = function () {
-                    $this->showFatalError();
-                };
-                register_shutdown_function($this->shutdown);
-                error_reporting(0);
-            }
+            $this->shutdown = function () {
+                $this->showFatalError();
+            };
+            register_shutdown_function($this->shutdown);
+            error_reporting(0);
         }
 
         // Empty folder on full site build
@@ -568,7 +567,7 @@ class Builder
         }
 
         // Restore error reporting if building pages worked
-        if ($write && $this->catcherror) {
+        if ($write) {
             error_reporting($level);
             $this->shutdown = function () {};
         }

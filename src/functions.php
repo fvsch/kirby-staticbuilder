@@ -1,6 +1,6 @@
 <?php
 
-namespace Kirby\Plugin\StaticBuilder;
+namespace Kirby\StaticBuilder;
 
 /**
  * Standard filter used to exclude empty "page" directories

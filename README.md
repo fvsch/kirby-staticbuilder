@@ -20,7 +20,7 @@ Note: to get the right result for your site and needs, you may need to tweak som
 Installation and usage
 ----------------------
 
-StaticBuilder requires Kirby 2.3.
+StaticBuilder requires Kirby 2.3.1 or later.
 
 1.  [Download a ZIP of the latest release][DOWNLOAD_PAGE], rename the folder to `staticbuilder` and put it in `site/plugins`.<br>(Alternatively, you can install this plugin with the [Kirby CLI][KIRBY_CLI].)
 
@@ -41,14 +41,27 @@ Documentation
 -   [StaticBuilder options][DOC_OPTIONS]
 
 
-Running into bugs?
-------------------
+Known issues
+------------
+
+### Script timeout
+
+Building a lot of pages, or sometimes just a few pages, can be intensive. In particular, if you’re making a lot of *thumbs* (resizing images in PHP), the script can time out.
+ 
+Workaround for thumbs: try visiting those pages first to build the thumbs, and start the static build after that.
+
+### Buggy page blocks the whole build
+
+If your templates or plugins have uncaught PHP Exceptions or PHP errors, generating the HTML pages will be stopped.
+
+For instance, if you’re building 10 pages and the third one has an error, only the first 2 will be built and written to the `static` folder.) To prevent that:
+
+1.  Fix errors. :)
+2.  Or exclude the buggy page(s) from the static build, using the `filter` option.
+
+### Other issues
 
 See the [list of issues][ISSUES], and if nothing matches please create a new one (you will need a GitHub account).
-
-**Known issues:**
-
--   Building a lot of pages, or sometimes just a few pages, can be intensive. For instance if you’re making a lot of *thumbs* (resizing images in PHP) the script can time out; try visiting those pages first to build the thumbs, and start the static build after that.
 
 
 [DOC_STATIC]: doc/static.md

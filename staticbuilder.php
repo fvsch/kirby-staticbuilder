@@ -2,7 +2,7 @@
 
 // The plugin must be enabled in config to be able to run,
 // which allows enabling it only for a local dev environment.
-if (C::get('plugin.staticbuilder.enabled', false)) {
+if (C::get('staticbuilder', false)) {
 
     $kirby = kirby();
 
@@ -12,17 +12,17 @@ if (C::get('plugin.staticbuilder.enabled', false)) {
 
     require_once __DIR__ . '/src/functions.php';
     require_once __DIR__ . '/src/Controller.php';
-    require_once __DIR__ . '/src/StaticBuilder.php';
+    require_once __DIR__ . '/src/Builder.php';
 
     $kirby->set('route', [
         'pattern' => 'staticbuilder',
-        'action'  => 'Kirby\Plugin\StaticBuilder\Controller::siteAction',
+        'action'  => 'Kirby\StaticBuilder\Controller::siteAction',
         'method'  => 'GET|POST'
     ]);
 
     $kirby->set('route', [
         'pattern' => 'staticbuilder/(:all)',
-        'action'  => 'Kirby\Plugin\StaticBuilder\Controller::pageAction',
+        'action'  => 'Kirby\StaticBuilder\Controller::pageAction',
         'method'  => 'GET|POST'
     ]);
 

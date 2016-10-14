@@ -1,6 +1,6 @@
 <?php
 
-namespace Kirby\Plugin\StaticBuilder;
+namespace Kirby\StaticBuilder;
 
 use R;
 use Response;
