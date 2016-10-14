@@ -2,27 +2,27 @@
 
 // The plugin must be enabled in config to be able to run,
 // which allows enabling it only for a local dev environment.
-if (c::get('plugin.staticbuilder.enabled', false)) {
+if (C::get('plugin.staticbuilder.enabled', false)) {
 
-	if (!class_exists('Kirby\Registry')) {
-		throw new Exception('Twig plugin requires Kirby 2.3 or higher. Current version: ' . $kirby->version());
-	}
+    $kirby = kirby();
 
-	define('PLUGIN_ROOT', __DIR__);
+    if (!class_exists('Kirby\Registry')) {
+        throw new Exception('Twig plugin requires Kirby 2.3 or higher. Current version: ' . $kirby->version());
+    }
 
-	require_once PLUGIN_ROOT . '/core/builder.php';
-	require_once PLUGIN_ROOT . '/core/actions.php';
+    require_once __DIR__ . '/src/Controller.php';
+    require_once __DIR__ . '/src/Builder.php';
 
-	$kirby->set('route', [
-		'pattern' => 'staticbuilder',
-		'action'  => 'Kirby\Plugin\StaticBuilder\siteAction',
-		'method'  => 'GET|POST'
-	]);
+    $kirby->set('route', [
+        'pattern' => 'staticbuilder',
+        'action'  => 'KirbyStaticBuilder\Controller::siteAction',
+        'method'  => 'GET|POST'
+    ]);
 
-	$kirby->set('route', [
-		'pattern' => 'staticbuilder/(:all)',
-		'action'  => 'Kirby\Plugin\StaticBuilder\pageAction',
-		'method'  => 'GET|POST'
-	]);
+    $kirby->set('route', [
+        'pattern' => 'staticbuilder/(:all)',
+        'action'  => 'KirbyStaticBuilder\Controller::pageAction',
+        'method'  => 'GET|POST'
+    ]);
 
 }
