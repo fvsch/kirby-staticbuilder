@@ -294,17 +294,19 @@ class Builder
      */
     protected function pageFilename(Page $page, $lang=null)
     {
-        $url  = ltrim(str_replace(static::URLPREFIX, '', $page->url($lang)));
-        $base = $this->outputdir . '/' . $url;
-        $file = $base . $this->filename;
+        $url = str_replace(static::URLPREFIX, '', $page->url($lang));
+        $url = trim($url, '/');
         // Special case: home page
-        if ($base == '' || $base == '/') {
-            $file = $base . 'index.html';
+        if (!$url) {
+            $file = $this->outputdir . '/index.html';
         }
-        // Don’t add any extension if we already have one (using a short
-        // whitelist for possible use cases).
-        elseif (preg_match('/\.(js|json|css|txt|svg|xml|atom|rss)$/i', $base)) {
-            $file = $base;
+        // Don’t add any extension if we already have one in the URL
+        // (using a short whitelist for likely use cases).
+        elseif (preg_match('/\.(js|json|css|txt|svg|xml|atom|rss)$/i', $url)) {
+            $file = $this->outputdir . '/' . $url;
+        }
+        else {
+            $file = $this->outputdir . '/' . $url . $this->filename;
         }
         $validPath = $this->normalizePath($file);
         if ($this->filterPath($validPath) == false) {
