@@ -1,6 +1,6 @@
 <?php
 
-namespace KirbyStaticBuilder;
+namespace Kirby\Plugin\StaticBuilder;
 
 use C;
 use Exception;
@@ -190,17 +190,8 @@ class Builder
             if (!is_bool($val)) throw new Exception(
                 "StaticBuilder page filter must return a boolean value");
             return $val;
-        } else {
-            // Exclude folders containing Kirby Modules
-            // https://github.com/getkirby-plugins/modules-plugin
-            if (strpos($page->intendedTemplate(), 'module.') === 0 ) {
-                return false;
-            }
-            // Only include pages which have an existing text file
-            // (We check that it exists because Kirby sets the text file
-            // name to the folder name when it can't find one.)
-            return file_exists($page->textfile());
         }
+        return defaultFilter($page);
     }
 
     /**
