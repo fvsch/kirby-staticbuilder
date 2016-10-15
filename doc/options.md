@@ -42,7 +42,7 @@ c::set([
     'staticbuilder.filter'     => null,
     'staticbuilder.extension'  => '.html',
     'staticbuilder.uglyurls'   => false,
-    'staticbuilder.pagefiles'  => false
+    'staticbuilder.withfiles'  => false
 ]);
 ```
 
@@ -73,13 +73,13 @@ There are several options for copying page files and making sure that your links
 
 3. Tell StaticBuilder to copy page files to a folder named after the page: e.g. `section/page/myfile.pdf`.
 
-The last option will work for relative paths in your HTML (`<a href="myfile.pdf">My File</a>` or `<img src="hello.svg" alt="">`) *only if* the page HTML is written to the same folder. So you probably want to use the `extension` and `pagefiles` options together:
+The last option will work for relative paths in your HTML (`<a href="myfile.pdf">My File</a>` or `<img src="hello.svg" alt="">`) *only if* the page HTML is written to the same folder. So you probably want to use the `extension` and `withfiles` options together:
 
 ```php
 c::set([
     'staticbuilder'            => true,
     'staticbuilder.extension'  => '/index.html',
-    'staticbuilder.pagefiles' => true
+    'staticbuilder.withfiles' => true
 ]);
 ```
 
@@ -212,7 +212,7 @@ c::set('staticbuilder.uglyurls', false);
 c::set('staticbuilder.uglyurls', true);
 ```
 
-### `staticbuilder.pagefiles`
+### `staticbuilder.withfiles`
 
 Should we copy page files in their parent’s target directory? (Defaults to false.)
 
@@ -220,7 +220,18 @@ Should we copy page files in their parent’s target directory? (Defaults to fal
 // Copy a page’s files (images, documents etc.), e.g.
 // content/1-my/3-page/image.jpg -> static/my/page/image.jpg
 // content/1-my/3-page/doc.pdf   -> static/my/page/doc.pdf
-c::set('staticbuilder.pagefiles', true);
+c::set('staticbuilder.withfiles', true);
 ```
 
 Note that for multilingual sites this would copy the files for each language (if you have 3 languages, each file gets copied to 3 different locations).
+
+You can also specify a filter function to specify which files should get copied over:
+
+```php
+c::set('staticbuilder.withfiles', function($file) {
+    // Only copy page files smaller than 250kB
+    return $file->size() < 256000;
+});
+```
+
+We’re using Kirby’s [`$files->filter()` method](https://getkirby.com/docs/cheatsheet/files/filter). See also [the available file methods](https://getkirby.com/docs/cheatsheet#file).

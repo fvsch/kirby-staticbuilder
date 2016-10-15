@@ -38,7 +38,7 @@ class Builder
     protected $extension  = '.html';
     protected $filter     = null;
     protected $uglyurls   = false;
-    protected $pagefiles = false;
+    protected $withfiles  = false;
 
     // Callable for PHP Errors
     public $shutdown;
@@ -114,7 +114,10 @@ class Builder
         $this->uglyurls = C::get('staticbuilder.uglyurls', $this->uglyurls);
 
         // Copy page files to a folder named after the page URL?
-        $this->pagefiles = C::get('staticbuilder.pagefiles', $this->pagefiles);
+        $withfiles = C::get('staticbuilder.withfiles', false);
+        if (is_bool($withfiles) || is_callable($withfiles)) {
+            $this->withfiles = $withfiles;
+        }
     }
 
     /**
@@ -367,6 +370,15 @@ class Builder
             'files'  => []
         ];
 
+        // Figure out if we have files to copy
+        $files = [];
+        if ($this->withfiles) {
+            $files = $page->files();
+            if (is_callable($this->withfiles)) {
+                $files = $files->filter($this->withfiles);
+            }
+        }
+
         // If not writing, let's report on the existing target page
         if ($write == false) {
             if (is_file($file)) {
@@ -377,9 +389,7 @@ class Builder
             else {
                 $log['status'] = 'missing';
             }
-            if ($this->pagefiles) {
-                $log['files'] = $page->files()->count();
-            }
+            $log['files'] = count($files);
             return $this->summary[] = $log;
         }
 
@@ -392,10 +402,13 @@ class Builder
         header_remove();
 
         // Option: Copy page files in a folder
-        if ($this->pagefiles) {
+        if (count($files) > 0) {
             $dir = str_replace(static::URLPREFIX, '', $page->url($lang));
             $dir = $this->normalizeSlashes($this->outputdir . '/' . $dir);
-            foreach ($page->files() as $f) {
+            if (!file_exists($dir)) {
+                mkdir($dir, 0777, true);
+            }
+            foreach ($files as $f) {
                 $dest = $dir . '/' . $f->filename();
                 if ($f->copy($dest)) {
                     $log['files'][] = str_replace($this->outputdir, 'static', $dest);
