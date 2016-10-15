@@ -58,21 +58,21 @@ class Builder
         define('STATIC_BUILD', true);
 
         // Kirby instance with some hacks
-        $this->kirby = $this->kirbyInstance();
+        $kirby = $this->kirbyInstance();
 
         // Project root
-        $this->root = $this->normalizeSlashes($this->kirby->roots()->index);
+        $this->root = $this->normalizeSlashes($kirby->roots()->index);
 
         // Multilingual
-        if ($this->kirby->site()->multilang()) {
-            foreach ($this->kirby->site()->languages() as $language) {
+        if ($kirby->site()->multilang()) {
+            foreach ($kirby->site()->languages() as $language) {
                 $this->langs[] = $language->code();
             }
         }
         else $this->langs[] = null;
 
         // Ouptut directory
-        $dir = C::get('staticbuilder.outputdir', $this->outputdir);
+        $dir = $kirby->get('option', 'staticbuilder.outputdir', $this->outputdir);
         $dir = $this->isAbsolutePath($dir) ? $dir : $this->root . '/' . $dir;
         $folder = new Folder($this->normalizePath($dir));
 
@@ -88,10 +88,10 @@ class Builder
         $this->outputdir = $folder->root();
 
         // URL root
-        $this->baseurl = C::get('staticbuilder.baseurl', $this->baseurl);
+        $this->baseurl = $kirby->get('option', 'staticbuilder.baseurl', $this->baseurl);
 
         // Normalize assets config
-        $assets = C::get('staticbuilder.assets', $this->assets);
+        $assets = $kirby->get('option', 'staticbuilder.assets', $this->assets);
         $this->assets = [];
         foreach ($assets as $key=>$dest) {
             if (!is_string($dest)) continue;
@@ -99,12 +99,12 @@ class Builder
         }
 
         // Filter for pages to build or ignore
-        if (is_callable($filter = C::get('staticbuilder.filter'))) {
+        if (is_callable($filter = $kirby->get('option', 'staticbuilder.filter'))) {
             $this->filter = $filter;
         }
 
         // File name or extension for output pages
-        if ($ext = C::get('staticbuilder.extension')) {
+        if ($ext = $kirby->get('option', 'staticbuilder.extension')) {
             $ext = trim(str_replace('\\', '/', $ext));
             if (in_array(substr($ext, 0, 1), ['/', '.'])) {
                 $this->extension = $ext;
@@ -114,13 +114,16 @@ class Builder
         }
 
         // Output ugly URLs (e.g. '/my/page/index.html')?
-        $this->uglyurls = C::get('staticbuilder.uglyurls', $this->uglyurls);
+        $this->uglyurls = $kirby->get('option', 'staticbuilder.uglyurls', $this->uglyurls);
 
         // Copy page files to a folder named after the page URL?
-        $withfiles = C::get('staticbuilder.withfiles', false);
+        $withfiles = $kirby->get('option', 'staticbuilder.withfiles', false);
         if (is_bool($withfiles) || is_callable($withfiles)) {
             $this->withfiles = $withfiles;
         }
+
+        // Save Kirby instance
+        $this->kirby = $kirby;
     }
 
     /**
