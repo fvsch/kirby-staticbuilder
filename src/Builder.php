@@ -54,6 +54,9 @@ class Builder
      */
     public function __construct()
     {
+        // Signal to templates & controllers that we're running a static build
+        define('STATIC_BUILD', true);
+
         // Kirby instance with some hacks
         $this->kirby = $this->kirbyInstance();
 

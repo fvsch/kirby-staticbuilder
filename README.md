@@ -37,8 +37,8 @@ Note: every time you do a full build, the content of the `static` folder will be
 Documentation
 -------------
 
--   [Best practices for static sites][DOC_STATIC]
 -   [StaticBuilder options][DOC_OPTIONS]
+-   [Best practices for static sites][DOC_STATIC]
 
 
 Known issues
@@ -49,6 +49,12 @@ Known issues
 Building a lot of pages, or sometimes just a few pages, can be intensive. In particular, if you’re making a lot of *thumbs* (resizing images in PHP), the script can time out.
  
 Workaround for thumbs: try visiting those pages first to build the thumbs, and start the static build after that.
+
+### Script interrupted by a redirect
+
+If you use Kirby’s `go()` function, or `Redirect::to()` or `Header::redirect()` from the Kirby Toolkit, the script will be interrupted by an `exit;` statement and you will get redirected to a different page.
+
+For a workaround, see [our best practice for HTTP redirections][DOC_STATIC_REDIR].
 
 ### Buggy page blocks the whole build
 
@@ -65,6 +71,7 @@ See the [list of issues][ISSUES], and if nothing matches please create a new one
 
 
 [DOC_STATIC]: doc/static.md
+[DOC_STATIC_REDIR]: doc/static.md#http-redirections
 [DOC_OPTIONS]: doc/options.md
 [DOWNLOAD_PAGE]: https://github.com/fvsch/kirby-staticbuilder/releases/latest
 [ISSUES]: https://github.com/fvsch/kirby-staticbuilder/issues

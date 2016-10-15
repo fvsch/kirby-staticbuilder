@@ -37,11 +37,11 @@ You should now be able to load `http://[local-domain]/staticbuilder/` and see a 
 c::set([
     'staticbuilder'            => false,
     'staticbuilder.outputdir'  => 'static',
-    'staticbuilder.baseurl'    => '/',
     'staticbuilder.assets'     => ['assets', 'content', 'thumbs'],
-    'staticbuilder.filter'     => null,
-    'staticbuilder.extension'  => '.html',
+    'staticbuilder.baseurl'    => '/',
     'staticbuilder.uglyurls'   => false,
+    'staticbuilder.extension'  => '.html',
+    'staticbuilder.filter'     => null,
     'staticbuilder.withfiles'  => false
 ]);
 ```
