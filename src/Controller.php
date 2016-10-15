@@ -8,6 +8,35 @@ use Response;
 class Controller
 {
     /**
+     * Register StaticBuilder's routes
+     */
+    static function register()
+    {
+        $kirby = kirby();
+
+        if (!class_exists('Kirby\\Registry')) {
+            throw new Exception('Twig plugin requires Kirby 2.3 or higher. Current version: ' . $kirby->version());
+        }
+
+        // The plugin must be enabled in config to be able to run,
+        // which allows enabling it only for a local dev environment.
+        if (!$kirby->get('option', 'staticbuilder', false)) {
+            return;
+        }
+
+        $kirby->set('route', [
+            'pattern' => 'staticbuilder',
+            'action' => 'Kirby\\StaticBuilder\\Controller::siteAction',
+            'method' => 'GET|POST'
+        ]);
+        $kirby->set('route', [
+            'pattern' => 'staticbuilder/(:all)',
+            'action' => 'Kirby\\StaticBuilder\\Controller::pageAction',
+            'method' => 'GET|POST'
+        ]);
+    }
+
+    /**
      * Kirby router action that lists all pages to build and files to copy,
      * and performs the actual build on user confirmation.
      * @return Response

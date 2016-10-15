@@ -208,7 +208,7 @@ c::set('staticbuilder.filter', function($page) {
         return $page->isPublished();
     }
     // And fall back to the default logic for other pages
-    return Kirby\StaticBuilder\defaultFilter($page);
+    return Kirby\StaticBuilder\Builder::defaultFilter($page);
 });
 ```
 

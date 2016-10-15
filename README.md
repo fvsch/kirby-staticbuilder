@@ -22,12 +22,11 @@ Installation and usage
 
 StaticBuilder requires Kirby 2.3.1 or later.
 
-1.  [Download a ZIP of the latest release][DOWNLOAD_PAGE], rename the folder to `staticbuilder` and put it in `site/plugins`.<br>(Alternatively, you can install this plugin with the [Kirby CLI][KIRBY_CLI].)
+1.  [Download a ZIP of the latest release][DOWNLOAD_PAGE], rename the folder to `staticbuilder` and put it in your project’s `site/plugins` folder. (Alternatively, you can install this plugin with the [Kirby CLI][KIRBY_CLI], or [with Composer][DOC_COMPOSER].)
 
-2.  Enable the plugin: see the [options documentation][DOC_OPTIONS].<br>(It’s simple really, but we probably don’t want to enable it for a live website!)
+2.  Enable the plugin: see the [options documentation][DOC_OPTIONS]. (It’s simple really, but we probably don’t want to enable it for a live website!)
 
-3.  Load `http://localhost/staticbuilder` in a web browser (where `localhost` is the domain where you can see your Kirby site; it might be different depending on the test server you use or how you configured it).<br>
-    You should see a list of pages. Check that these are indeed pages you want to export as HTML, and tweak the [options][DOC_OPTIONS] if needed.
+3.  Load `http://localhost/staticbuilder` in a web browser (where `localhost` is the domain where you can see your Kirby site; it might be different depending on the test server you use or how you configured it). You should see a list of pages. Check that these are indeed pages you want to export as HTML, and tweak the [options][DOC_OPTIONS] if needed.
 
 4.  Hit the “Build” button. Hopefully things will work alright. If you have many pages (e.g. a few hundred), it might take a few seconds.
 
@@ -39,6 +38,7 @@ Documentation
 
 -   [StaticBuilder options][DOC_OPTIONS]
 -   [Best practices for static sites][DOC_STATIC]
+-   [Optional: Installing with Composer][DOC_COMPOSER]
 
 
 Known issues
@@ -73,6 +73,7 @@ See the [list of issues][ISSUES], and if nothing matches please create a new one
 [DOC_STATIC]: doc/static.md
 [DOC_STATIC_REDIR]: doc/static.md#http-redirections
 [DOC_OPTIONS]: doc/options.md
+[DOC_COMPOSER]: doc/composer.md
 [DOWNLOAD_PAGE]: https://github.com/fvsch/kirby-staticbuilder/releases/latest
 [ISSUES]: https://github.com/fvsch/kirby-staticbuilder/issues
 [KIRBY_CLI]: https://github.com/getkirby/cli
