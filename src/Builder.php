@@ -622,7 +622,7 @@ class Builder
     {
         // Exclude folders containing Kirby Modules
         // https://github.com/getkirby-plugins/modules-plugin
-        if (strpos($page->intendedTemplate(), 'module.') === 0) {
+        if (strpos($page->intendedTemplate(), c::get('modules.template.prefix', 'module.')) === 0) {
             return false;
         }
         // Only include pages which have an existing text file
