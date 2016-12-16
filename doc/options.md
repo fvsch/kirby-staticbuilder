@@ -189,13 +189,19 @@ c::set('staticbuilder.extension', '/index.html'); // my/page/index.html
 
 With this option you can provide a PHP callback that gets each Page object as its only parameter, and which should return `true` for pages to build and `false` for pages to exclude.
 
+Optionally, this callback can return an array with a boolean value and a message explaining why a page was filtered in or out.
+
 This example filters out pages that do not match the specified template names:
 
 ```php
 c::set('staticbuilder.filter', function($page){
     $template = $page->intendedTemplate();
     $allowed = ['page', 'post', 'blog', 'error', 'home'];
-    return in_array($template, $allowed);
+    if (in_array($template, $allowed)) {
+        return true;
+    } else {
+        return [false, "Template '$template' excluded from static build"];
+    }
 });
 ```
 
@@ -204,8 +210,8 @@ The default filter excludes folders that don’t have a text file, and folders t
 ```php
 c::set('staticbuilder.filter', function($page) {
     // Check our custom logic for articles
-    if ($page->intendedTemplate() == 'article') {
-        return $page->isPublished();
+    if ($page->intendedTemplate() == 'article' && !$page->isPublished()) {
+        return [false, 'Unpublished articles are excluded from static build'];
     }
     // And fall back to the default logic for other pages
     return Kirby\StaticBuilder\Builder::defaultFilter($page);

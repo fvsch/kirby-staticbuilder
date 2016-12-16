@@ -1,13 +1,8 @@
 {
   "name": "staticbuilder",
   "description": "Kirby StaticBuilder Plugin",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "type": "kirby-plugin",
   "author": "Florens Verschelde <florens@fvsch.com>",
-  "license": "MIT",
-  "autoload": {
-    "psr-4": {
-      "Kirby\\StaticBuilder\\": "src/"
-    }
-  }
+  "license": "MIT"
 }

@@ -87,20 +87,22 @@ function makeRow($info, $base) {
 
     // Destination column
     if ($status == 'ignore') {
-        $cols['dest'] = "<em>$reason</em>";
+        $cols['ignore'] = "<em>$reason</em>";
     }
     else {
         $cols['dest'] = "<code>$dest</code>" . showFiles($files);
+        // Status column
+        $cols['status'] = statusText($status);
+        if (is_int($size)) {
+            $cols['status'] .= '<br><code>'.F::niceSize($size).'</code>';
+        }
     }
-
-    // Status column
-    $cols['status'] = statusText($status);
-    if (is_int($size)) $cols['status'] .= '<br><code>'.F::niceSize($size).'</code>';
 
     // Make the HTML
     $html = '';
     foreach ($cols as $key=>$content) {
-        $html .= "<td class=\"$key\">$content</td>\n";
+        $colspan = $key === 'ignore' ? ' colspan="2"' : '';
+        $html .= "<td class=\"$key\"$colspan>$content</td>\n";
     }
     return "<tr class=\"$type $status\">\n$html</tr>\n";
 }

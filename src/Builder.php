@@ -2,6 +2,7 @@
 
 namespace Kirby\StaticBuilder;
 
+use A;
 use C;
 use Exception;
 use F;
@@ -187,23 +188,6 @@ class Builder
     }
 
     /**
-     * Should we include this page and its files in the static build?
-     * @param Page $page
-     * @return bool
-     * @throws Exception
-     */
-    protected function filterPage(Page $page)
-    {
-        if ($this->filter != null) {
-            $val = call_user_func($this->filter, $page);
-            if (!is_bool($val)) throw new Exception(
-                "StaticBuilder page filter must return a boolean value");
-            return $val;
-        }
-        return $this->defaultFilter($page);
-    }
-
-    /**
      * Check that the destination path is somewhere we can write to
      * @param string $absolutePath
      * @return boolean
@@ -321,13 +305,23 @@ class Builder
      */
     protected function buildPage(Page $page, $write=false)
     {
-        // Check if we will build this page and report why not
-        if (!$this->filterPage($page)) {
+        // Check if we will build this page and report why not.
+        // Note: in 2.1 the page filtering API changed, the return value
+        // can be a boolean or an array with a boolean + a string.
+        if (is_callable($this->filter)) {
+            $filterResult = call_user_func($this->filter, $page);
+        } else {
+            $filterResult = $this->defaultFilter($page);
+        }
+        if (!is_array($filterResult)) {
+            $filterResult = [$filterResult];
+        }
+        if (A::get($filterResult, 0, false) == false) {
             $log = [
                 'type'   => 'page',
                 'source' => 'content/'.$page->diruri(),
                 'status' => 'ignore',
-                'reason' => $this->filter == null ? 'Page has no text file' : 'Excluded by custom filter',
+                'reason' => A::get($filterResult, 1, 'Excluded by filter'),
                 'dest'   => null,
                 'size'   => null
             ];
@@ -616,18 +610,23 @@ class Builder
     /**
      * Standard filter used to exclude empty "page" directories
      * @param Page $page
-     * @return bool
+     * @return bool|array
      */
     public static function defaultFilter($page)
     {
         // Exclude folders containing Kirby Modules
         // https://github.com/getkirby-plugins/modules-plugin
-        if (strpos($page->intendedTemplate(), c::get('modules.template.prefix', 'module.')) === 0) {
-            return false;
+        $mod = C::get('modules.template.prefix', 'module.');
+        if (Str::startsWith($page->intendedTemplate(), $mod)) {
+            return [false, "Ignoring module pages (template prefix: \"$mod\")"];
         }
-        // Only include pages which have an existing text file
-        // (We check that it exists because Kirby sets the text file
-        // name to the folder name when it can't find one.)
-        return file_exists($page->textfile());
+        // Exclude pages missing a content file
+        // Note: $page->content()->exists() returns the wrong information,
+        // so we use the inventory instead. For an empty directory, it can
+        // be [] (single-language site) or ['code' => null] (multilang).
+        if (array_shift($page->inventory()['content']) === null) {
+            return [false, 'Page has no content file.'];
+        }
+        return true;
     }
 }
