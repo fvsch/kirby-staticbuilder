@@ -92,7 +92,7 @@ This can be achieved with this configuration:
 ```php
 c::set([
     'staticbuilder'          => true,
-    'staticbuilder.baseurl'  => '.',
+    'staticbuilder.baseurl'  => './',
     'staticbuilder.uglyurls' => true
 ]);
 ```
@@ -154,7 +154,7 @@ Finally, there is a magic value for relative URLs:
 
 ```php
 // Change all URLs to fully relative
-c::set('staticbuilder.baseurl', '.');
+c::set('staticbuilder.baseurl', './');
 ```
 
 Then URLs from page A to page B should look like `./../../other-section/page-b`.
