@@ -598,12 +598,9 @@ class Builder
         // templates, controllers or plugins when rendering pages.
         header_remove();
         $root = dirname(__DIR__);
-        $css = $root . '/assets/report.css';
-        $js  = $root . '/assets/report.js';
-        $tpl = $root . '/templates/report.php';
-        $data['styles'] = file_get_contents($css);
-        $data['script'] = file_get_contents($js);
-        $body = Tpl::load($tpl, $data);
+        $data['styles'] = file_get_contents($root . '/assets/report.css');
+        $data['script'] = file_get_contents($root . '/assets/report.js');
+        $body = Tpl::load(__DIR__ . '/report.php', $data);
         return new Response($body, 'html', $data['error'] ? 500 : 200);
     }
 
