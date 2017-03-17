@@ -1,6 +1,11 @@
 <?php
 
-$base = explode('staticbuilder', thisUrl())[0] . 'staticbuilder';
+function getBaseUrl() {
+    $url = thisUrl();
+    $pos = strrpos($url, 'staticbuilder');
+    return substr($url, 0, $pos) . 'staticbuilder';
+}
+$base = getBaseUrl();
 
 // Sort data
 $pages  = [ 'main' => [], 'ignore' => []];
