@@ -528,9 +528,10 @@ class Builder
             case E_PARSE:
                 ob_clean();
                 echo $this->htmlReport([
+                    'mode' => 'fatal',
                     'error' => 'Error while building pages',
                     'summary' => $this->summary,
-                    'lastPage' => $this->lastpage,
+                    'errorTitle' => 'Failed to build page <code>' . $this->lastpage . '</code>',
                     'errorDetails' => $error['message'] . "<br>\n"
                         . 'In ' . $error['file'] . ', line ' . $error['line']
                 ]);

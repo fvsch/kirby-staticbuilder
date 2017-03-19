@@ -105,6 +105,10 @@ button.header-btn:focus {
   font-family: monospace, monospace;
   font-size: 85%;
 }
+.error-msg blockquote code,
+.error-msg blockquote pre {
+  font: inherit;
+}
 .error-msg ul {
   padding-left: 0;
   list-style-type: square;

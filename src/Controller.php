@@ -8,6 +8,9 @@ use Response;
 
 class Controller
 {
+    /** @var bool */
+    private static $registered = false;
+
     /**
      * Register StaticBuilder's routes
      */
@@ -15,24 +18,24 @@ class Controller
     {
         // The plugin must be enabled in config to be able to run,
         // which allows enabling it only for a local dev environment.
-        if (C::get('staticbuilder', false) !== true) {
-            return;
+        if (static::$registered === false && C::get('staticbuilder') === true) {
+            $kirby = kirby();
+            if (!class_exists('Kirby\\Registry')) {
+                throw new Exception('Twig plugin requires Kirby 2.3 or higher. Current version: ' . $kirby->version());
+            }
+            $kirby->set('route', [
+                'pattern' => 'staticbuilder',
+                'action' => 'Kirby\\StaticBuilder\\Controller::siteAction',
+                'method' => 'GET|POST'
+            ]);
+            $kirby->set('route', [
+                'pattern' => 'staticbuilder/(:all)',
+                'action' => 'Kirby\\StaticBuilder\\Controller::pageAction',
+                'method' => 'GET|POST'
+            ]);
+            static::$registered = true;
         }
-
-        $kirby = kirby();
-        if (!class_exists('Kirby\\Registry')) {
-            throw new Exception('Twig plugin requires Kirby 2.3 or higher. Current version: ' . $kirby->version());
-        }
-        $kirby->set('route', [
-            'pattern' => 'staticbuilder',
-            'action' => 'Kirby\\StaticBuilder\\Controller::siteAction',
-            'method' => 'GET|POST'
-        ]);
-        $kirby->set('route', [
-            'pattern' => 'staticbuilder/(:all)',
-            'action' => 'Kirby\\StaticBuilder\\Controller::pageAction',
-            'method' => 'GET|POST'
-        ]);
+        return static::$registered;
     }
 
     /**
@@ -44,17 +47,34 @@ class Controller
     {
         $write = R::is('POST') and R::get('confirm');
         $site = site();
+        $kirby = kirby();
         $builder = new Builder();
 
+        // bail if cache is active
+        if ($kirby->get('option', 'cache')) {
+            return $builder->htmlReport([
+                'mode' => 'fatal',
+                'error' => 'Configuration error',
+                'errorTitle' => 'Disable Kirby’s cache',
+                'errorDetails' => '<p>StaticBuilder requires Kirby’s cache option to be disabled.</p>' .
+                    '<pre>&lt;?php // site/config/config.localhost.php' . "\n" .
+                    'c::set(\'cache\', false);</pre>',
+
+                'confim' => false,
+                'summary' => []
+            ]);
+        }
+
+        // try a build
         $builder->run($site, $write);
 
-        $data = [
+        // this may not run if we've had errors
+        return $builder->htmlReport([
             'mode'    => 'site',
             'error'   => false,
             'confirm' => $write,
             'summary' => $builder->summary
-        ];
-        return $builder->htmlReport($data);
+        ]);
     }
 
     /**

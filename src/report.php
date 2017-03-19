@@ -139,41 +139,46 @@ function makeRow($info, $base) {
         <?php if ($mode == 'page'): ?>
             <a class="header-btn" href="<?php echo $base ?>">show all pages</a>
         <?php endif; ?>
-        <form method="post" action="">
-            <input type="hidden" name="confirm" value="1">
-            <button class="header-btn" type="submit">
-                build <?= $mode == 'page' ? 'this page' : 'everything' ?>
-            </button>
-        </form>
+        <?php if ($mode !== 'fatal'): ?>
+            <form method="post" action="">
+                <input type="hidden" name="confirm" value="1">
+                <button class="header-btn" type="submit">
+                    build <?= $mode == 'page' ? 'this page' : 'everything' ?>
+                </button>
+            </form>
+        <?php endif; ?>
     </div>
 </header>
 
 <main>
 <?php if (isset($errorDetails)): ?>
     <div class="error-msg">
-        <h2>
-            Failed to build page
-            <?php if (isset($lastPage)) echo '<code>'.$lastPage.'</code>'; ?>
-        </h2>
-        <blockquote>
-            <?php echo $errorDetails ?>
-        </blockquote>
-        <h2>Build status</h2>
-        <ul>
-            <li><?php echo $pagesCount ?> page(s) were built without errors.</li>
-            <li>Next pages in the queue were <em>not</em> built, and assets not copied over.</li>
-        </ul>
+        <?php if (isset($errorTitle)): ?>
+            <h2><?php echo $errorTitle; ?></h2>
+        <?php endif; ?>
+        <?php if (isset($errorDetails)): ?>
+            <blockquote>
+                <?php echo $errorDetails ?>
+            </blockquote>
+        <?php endif; ?>
+        <?php if (str::contains($error, 'building pages')): ?>
+            <h2>Build status</h2>
+            <ul>
+                <li><?php echo $pagesCount ?> page(s) were built without errors.</li>
+                <li>Next pages in the queue were <em>not</em> built, and assets not copied over.</li>
+            </ul>
+        <?php endif; ?>
         <?php if (strpos($errorDetails, 'execution time') !== false): ?>
-        <h2>What can I do?</h2>
-        <p>
-            It looks like the build process timed out. Are you building many pages (hundreds perhaps?)
-            or building many thumb images?
-        </p>
-        <p>
-            In many situations, <strong>restarting the build once</strong> or even twice fixes the issue. You could try that,
-            and check if you’re making progress (more pages getting built). Note that you can also build pages
-            individually (going to <code>/staticbuilder/page-uri</code>).
-        </p>
+            <h2>What can I do?</h2>
+            <p>
+                It looks like the build process timed out. Are you building many pages (hundreds perhaps?)
+                or building many thumb images?
+            </p>
+            <p>
+                In many situations, <strong>restarting the build once</strong> or even twice fixes the issue. You could try that,
+                and check if you’re making progress (more pages getting built). Note that you can also build pages
+                individually (going to <code>/staticbuilder/page-uri</code>).
+            </p>
         <?php endif; ?>
     </div>
 <?php endif; ?>
