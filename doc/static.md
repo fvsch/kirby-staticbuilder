@@ -1,5 +1,5 @@
-Best practices for static sites
-===============================
+Recommendations for static sites
+================================
 
 
 Kirby is not originally a static site generator, so some things that work on a dynamic Kirby-powered website might not work in a static HTML export. This guide helps you avoid common issues.

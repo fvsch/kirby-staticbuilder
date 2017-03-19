@@ -5,32 +5,6 @@ Kirby StaticBuilder options
 StaticBuilder offers a handful of options so that you can tweak the result, depending on your taste or your technical requirements. Need to export a documentation that can be shared as a folder of files (rather than hosted on a web server)? That’s doable. Only export part of a website? Sure.
 
 
-## Activating the plugin
-
-Enabling this plugin takes a single line of PHP, but we’re going to take a detour first because you probably *don’t want to enable this plugin on a live website*.
-
-So let’s say we only want to enable Kirby StaticBuilder on your own computer. What is the URL you use to access your site locally? Typically it would look like one of those:
-
-- `http://localhost/`
-- `http://localhost:8080/`
-- `http://test.mywebsite.dev/`
-
-If you don’t have one yet, you should create a config file just for this domain in your `site/config` directory, for instance:
-
-- `site/config/config.localhost.php` (works for the first 2 examples)
-- `site/config/config.test.mywebsite.dev.php` (works for the last one)
-
-Then in this domain-specific config file, add:
-
-```php
-<?php
-// Enable Kirby StaticBuilder locally
-c::set('staticbuilder', true);
-```
-
-You should now be able to load `http://[local-domain]/staticbuilder/` and see a list of your site’s pages.
-
-
 ## Option defaults
 
 ```php
