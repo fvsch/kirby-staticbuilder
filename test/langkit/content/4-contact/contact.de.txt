@@ -1,0 +1,65 @@
+Title: Kontakt
+
+----
+
+Text: 
+
+## Folge dem Kirby-Team auf Twitter
+
+Kirby
+(twitter: @getkirby)
+
+Bastian
+(twitter: @bastianallgeier)
+
+Nico
+(twitter: @distantnative)
+
+Sascha
+(twitter: @sashtown)
+
+Sonja
+(twitter: @texnixe)
+
+Lukas
+(twitter: @lukasbestle)
+
+Fabian
+(twitter: @fabianmichael)
+
+----
+
+Intro: Diese Kontaktseite enthält nicht nur wichtige Informationen darüber, wie du das meiste aus Kirby herausholst. Sie demonstriert auch, wie man wiederholende Inhalte über das sogenannte <mark>Structure-Field</mark> erzeugen kann. Wenn die Inhalte komplexer werden als die Boxen in diesem Beispiel, solltest du auf Unterseiten umsteigen, wie auf der (link: /about text: Über uns)-Seite gezeigt.
+
+----
+
+Contactoptions: 
+
+- 
+  title: Kontakt
+  text: >
+    Schreibe uns eine Email, falls du Fragen oder Probleme hast.
+  url: mailto:support@getkirby.com
+  linktext: support@getkirby.com
+  icon: contact.svg
+- 
+  title: Forum
+  text: >
+    Melde dich in unserem Forum an und triff Kirby-User weltweit.
+  url: https://forum.getkirby.com/
+  linktext: forum.getkirby.com
+  icon: forum.svg
+- 
+  title: GitHub
+  text: >
+    Erstelle Kirby-Bug Reports oder Feature Requests direkt auf GitHub
+  url: https://github.com/getkirby
+  linktext: github.com/getkirby
+  icon: github.svg
+- 
+  title: Doku
+  text: >
+    Ausführliche Anleitungen und Tutorials findest du in unserer Doku
+  url: https://getkirby.com/docs
+  linktext: getkirby.com/docs
+  icon: docs.svg

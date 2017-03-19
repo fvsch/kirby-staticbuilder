@@ -1,0 +1,28 @@
+# -------------------------------- #
+# .htaccess file for static builds #
+# -------------------------------- #
+
+AddDefaultCharset UTF-8
+
+# Disallow directory indexes
+Options -Indexes
+# Allow Apache to serve "/something.html" if the request is for "/something"
+Options +MultiViews
+
+# Don't add a slash when requesting a directory
+DirectorySlash Off
+# Redirect "/something/" to "/something"
+# Warning: only enable if serving the site at the root of a domain or subdomain,
+# e.g. https://my.site.com/ or http://localhost/
+# Otherwise it will redirect "/site/root/" to "/site/root", which can be a problem.
+RedirectMatch (.+?)/+$ $1
+
+# For a request of "/something" (or "/something/"), if both "static/something.html"
+# and the "static/something/" folder exist, we want to serve the HTML page.
+# We have to rewrite the request for that:
+<IfModule mod_rewrite.c>
+RewriteEngine on
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^(.*)/?$ $1.html [L]
+</IfModule>

@@ -1,0 +1,9 @@
+Title: Kirby Langkit
+
+----
+
+Description: This is Kirby's Langkit.
+
+----
+
+Copyright: © 2009–(date: Year) (link: http://getkirby.com text: The Kirby Team)

@@ -1,0 +1,13 @@
+Title: Über uns
+
+----
+
+Intro: Diese Seite demonstriert, wie man Unterseiten dafür verwenden kann, um zum Beispiel Inhalte für Team-Mitglieder zu speichern und abzurufen. Dieser Ansatz ist vor allem dann sinnvoll, wenn du viele verschiedene Inhalte strukturieren und mit zusätzlichen Bildern und Dateien versehen willst.
+
+----
+
+Text: Du kannst Unterseiten auch dafür verwenden, um (link: https://getkirby.com/docs/cookbook/one-pager text: One-Pager)-Seiten umzusetzen, die viele verschiedene Inhaltsbereiche umfassen.
+
+----
+
+Url-key: ueber-uns

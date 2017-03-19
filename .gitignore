@@ -1,0 +1,18 @@
+# ------------ #
+#  Test files  #
+# ------------ #
+
+# Composer-installed dependencies
+/test/vendor
+/test/composer.lock
+
+# Generated content
+/test/starterkit/thumbs/*
+/test/starterkit/site/cache/*
+/test/starterkit/static/
+/test/langkit/thumbs/*
+/test/langkit/site/cache/*
+/test/langkit/static/
+
+# Keep this rule at the end
+!.gitkeep

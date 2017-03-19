@@ -1,0 +1,5 @@
+Title: Blog
+
+----
+
+Text: Blogging mit Kirby ist einfach und macht Spaß. Dieses Beispiel-Blog zeigt, wie man mit Kirby und wenigen Zeilen Code seine eigene Blogengine bauen kann. Tags, Kategorien oder was auch immer du noch gerne zusätzlich hättest, lässt sich jederzeit ergänzen.

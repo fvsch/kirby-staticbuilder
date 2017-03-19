@@ -4,3 +4,6 @@ composer.json   export-ignore
 # Composer doesnt mind if we don't include the composer.json in the archive,
 # but Kirby's CLI tool does (Invalid Kirby Plugin Type)
 # package.json  export-ignore
+
+# Don't install the test site
+test  export-ignore

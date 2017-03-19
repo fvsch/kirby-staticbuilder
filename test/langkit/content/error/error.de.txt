@@ -1,0 +1,9 @@
+Title: Fehler
+
+----
+
+Intro: Die Seite konnte nicht gefunden werden.
+
+----
+
+Text: Nun ja, manchmal können Dinge schiefgehen und vielleicht hast du dich bei einer URL vertippt, einen kaputten Link angeklickt oder dein Computer möchte dich einfach nerven. Egal … bleib ruhig und schau dir doch stattdessen unsere wunderschöne (link: / text: Startseite) an.

@@ -1,0 +1,9 @@
+Title: Kirby Sprachen-Kit
+
+----
+
+Description: Dies ist Kirby's Sprachen-Kit.
+
+----
+
+Copyright: © 2009–(date: Year) (link: http://getkirby.com text: Das Kirby-Team)

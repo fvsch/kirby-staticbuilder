@@ -1,0 +1,17 @@
+Title: Hunter S. Tomcat
+
+----
+
+About: Auf den ersten Blick eine nette kleine Katze, auf den zweiten Blick ein knallharter Papiertiger.
+
+----
+
+Position: Papiertiger
+
+----
+
+Phone: +49 12345 568-25
+
+----
+
+Email: hunter@example.com

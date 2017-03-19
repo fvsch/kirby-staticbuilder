@@ -1,0 +1,5 @@
+Title: Projekte
+
+----
+
+Text: Das Portfolio-Layout kann zum Beispiel dafür verwendet werden, um aktuelle Design-Projekte oder deine Lieblingsrezepte zu zeigen. Oder vielleicht etwas völlig anderes? Alle Projekte sind Unterseiten der <mark>projects</mark>-Seite and werden im <mark>projects.php</mark>-Snippet geladen.
