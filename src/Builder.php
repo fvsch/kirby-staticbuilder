@@ -136,6 +136,8 @@ class Builder
     {
         // This will retrieve the existing instance with stale settings
         $kirby = kirby();
+        // Disable cache
+        C::set('cache', false);
         // We need to call configure again with the new url prefix
         C::set('url', static::URLPREFIX);
         $kirby->configure();
