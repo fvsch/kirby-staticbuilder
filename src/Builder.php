@@ -234,7 +234,7 @@ class Builder
     protected function rewriteUrls($text, $pageUrl)
     {
         $relative = $this->baseurl === './';
-        if ($relative || $this->uglyurls) {
+        if ($relative || $this->uglyurls || $this->withfiles) {
             // Match restrictively urls starting with prefix, and which are
             // correctly escaped (no whitespace or quotes).
             $find = preg_quote(static::URLPREFIX) . '(\/?[^\?\&<>{}"\'\s]*)';
@@ -256,6 +256,25 @@ class Builder
                         $pageUrl = str_replace(static::URLPREFIX, '', $pageUrl);
                         $url = str_replace(static::URLPREFIX, '', $url);
                         $url = $this->relativeUrl($pageUrl, $url);
+                    }
+                    // Make content urls relative
+                    if ($this->withfiles && Str::contains($url, 'content/')) {
+                        $path = $found[1];
+                        $pageUrl .= $this->extension;
+                        $pageUrl = str_replace(static::URLPREFIX, '', $pageUrl);
+                        $dir = '';
+                        $dirname = pathinfo($path, PATHINFO_DIRNAME);
+                        // remove '/content'
+                        $dirname = preg_replace('/^\/content/', '', $dirname);
+                        // remove numbers (/2-lorem/41-ipsum => /lorem/ipsum)
+                        $dirname = preg_replace('/\/\d+-/', '/', $dirname);
+                        // if file references not to home directory
+                        $dirs = explode('/', $dirname);
+                        if ($dirs[1] !== C::get('home', 'home') || count($dirs) > 2) {
+                          $dir = $dirname . '/';
+                        }
+                        $absoluteUrl = $dir . pathinfo($path, PATHINFO_BASENAME);
+                        $url = $this->relativeUrl($pageUrl, $absoluteUrl);
                     }
                     return $url;
                 },
