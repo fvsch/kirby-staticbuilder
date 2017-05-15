@@ -139,6 +139,11 @@ function makeRow($info, $base) {
         <?php if ($mode == 'page'): ?>
             <a class="header-btn" href="<?php echo $base ?>">show all pages</a>
         <?php endif; ?>
+        <?php if ($mode == 'site' && $zipFile) : ?>
+            <a href="<?= explode('staticbuilder', thisUrl())[0] , $zipFile ?>" class="header-btn" download>
+                Download Zip
+            </a>
+        <?php endif; ?>
         <?php if ($mode !== 'fatal'): ?>
             <form method="post" action="">
                 <input type="hidden" name="confirm" value="1">

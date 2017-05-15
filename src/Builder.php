@@ -13,6 +13,9 @@ use Response;
 use Site;
 use Str;
 use Tpl;
+use ZipArchive;
+use RecursiveIteratorIterator;
+use RecursiveDirectoryIterator;
 
 /**
  * Static HTML builder class for Kirby CMS
@@ -40,6 +43,7 @@ class Builder
     protected $filter     = null;
     protected $uglyurls   = false;
     protected $withfiles  = false;
+    protected $zipfile    = false;
 
     // Callable for PHP Errors
     public $shutdown;
@@ -121,6 +125,12 @@ class Builder
         $withfiles = $kirby->get('option', 'staticbuilder.withfiles', false);
         if (is_bool($withfiles) || is_callable($withfiles)) {
             $this->withfiles = $withfiles;
+        }
+
+        // Create a zip file?
+        $zipfile = $kirby->get('option', 'staticbuilder.zipfile', false);
+        if (substr($zipfile, -4) === '.zip') {
+            $this->zipfile = $zipfile;
         }
 
         // Save Kirby instance
@@ -604,6 +614,12 @@ class Builder
             error_reporting($level);
             $this->shutdown = function () {};
         }
+
+        // Create Zip
+        if ($write and $this->zipfile) {
+            $this->createZip($this->outputdir, $this->zipfile);
+        }
+
     }
 
     /**
@@ -645,5 +661,49 @@ class Builder
             return [false, 'Page has no content file.'];
         }
         return true;
+    }
+
+    /**
+     * Creates Zip Archive
+     * @param Source $source
+     * @param Destionation $destination
+     * @return bool
+     */
+    protected function createZip($source, $destination)
+    {
+        if (!extension_loaded('zip') || !file_exists($source)) {
+            return false;
+        }
+
+        // Get real path for our folder
+        $rootPath = realpath($source);
+
+        // Initialize archive object
+        $zip = new ZipArchive();
+        $zip->open($destination, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+
+        // Create recursive directory iterator
+        /** @var SplFileInfo[] $files */
+        $files = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($rootPath),
+            RecursiveIteratorIterator::LEAVES_ONLY
+        );
+
+        foreach ($files as $name => $file)
+        {
+            // Skip directories (they would be added automatically)
+            if (!$file->isDir())
+            {
+                // Get real and relative path for current file
+                $filePath = $file->getRealPath();
+                $relativePath = substr($filePath, strlen($rootPath) + 1);
+
+                // Add current file to archive
+                $zip->addFile($filePath, $relativePath);
+            }
+        }
+
+        // Zip archive will be created only after closing object
+        return $zip->close();
     }
 }

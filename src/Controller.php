@@ -4,6 +4,7 @@ namespace Kirby\StaticBuilder;
 
 use C;
 use R;
+use F;
 use Response;
 
 class Controller
@@ -48,7 +49,14 @@ class Controller
         $write = R::is('POST') and R::get('confirm');
         $site = site();
         $kirby = kirby();
+        $zipfile = kirby()->get('option', 'staticbuilder.zipfile', false);
         $builder = new Builder();
+
+        if (substr($zipfile, -4) === '.zip' and F::exists($zipfile)) {
+            $zipfile = $zipfile;
+        } else {
+            $zipfile = false;
+        }
 
         // bail if cache is active
         if ($kirby->get('option', 'cache')) {
@@ -72,6 +80,7 @@ class Controller
         return $builder->htmlReport([
             'mode'    => 'site',
             'error'   => false,
+            'zipFile' => $zipfile,
             'confirm' => $write,
             'summary' => $builder->summary
         ]);
