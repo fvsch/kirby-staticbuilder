@@ -13,6 +13,7 @@ use Response;
 use Site;
 use Str;
 use Tpl;
+use Url;
 
 /**
  * Static HTML builder class for Kirby CMS
@@ -129,17 +130,23 @@ class Builder
 
     /**
      * Change some of Kirby’s settings to help us building HTML that
-     * is a tiny bit different from the live pages.
+     * is a bit different from the live pages.
+     * Side effects: changes Kirby Toolkit and Kirby instance URL config.
      * @return \Kirby
      */
     protected function kirbyInstance()
     {
         // This will retrieve the existing instance with stale settings
         $kirby = kirby();
-        // We need to call configure again with the new url prefix
+        // Set toolkit config to static URL prefix
+        // This helps making the js(), css() and url() helper functions work
         C::set('url', static::URLPREFIX);
-        $kirby->configure();
-        // But this one stays cached anyway, so we have to update it manually
+        Url::$home = static::URLPREFIX;
+        // Same for Kirby options
+        $kirby->set('option', 'url', static::URLPREFIX);
+        // Fix base URL for $kirby->urls->* API; not sure if it impacts something else
+        $kirby->urls->index = static::URLPREFIX;
+        // Finally, setting the base URL of the "site" page fixes site and page URLS
         $kirby->site->url = static::URLPREFIX;
         return $kirby;
     }
@@ -277,8 +284,15 @@ class Builder
      */
     protected function pageFilename(Page $page, $lang=null)
     {
-        $url = str_replace(static::URLPREFIX, '', $page->url($lang));
-        $url = trim($url, '/');
+        // We basically want the page $page->id(), but localized for multilang
+        $url = $page->url($lang);
+        // Strip the temporary URL prefix
+        $url = trim(str_replace(static::URLPREFIX, '', $url), '/');
+        // Page URL fragment should not contain a protocol or domain name at this point;
+        // did we fail to override the base URL with static::URLPREFIX?
+        if (Str::startsWith($url, 'http') || Str::contains($url, '://')) {
+            throw new Exception("Cannot use '$url' as basis for page's file name.");
+        }
         // Special case: home page
         if (!$url) {
             $file = $this->outputdir . '/index.html';
