@@ -37,7 +37,7 @@ class Builder
     protected $outputdir  = 'static';
     protected $baseurl    = '/';
     protected $assets     = ['assets', 'content', 'thumbs'];
-    protected $extension  = '.html';
+    protected $extension  = '/index.html';
     protected $filter     = null;
     protected $uglyurls   = false;
     protected $withfiles  = false;

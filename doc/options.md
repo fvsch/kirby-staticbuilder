@@ -14,7 +14,7 @@ c::set([
     'staticbuilder.assets'     => ['assets', 'content', 'thumbs'],
     'staticbuilder.baseurl'    => '/',
     'staticbuilder.uglyurls'   => false,
-    'staticbuilder.extension'  => '.html',
+    'staticbuilder.extension'  => '/index.html',
     'staticbuilder.filter'     => null,
     'staticbuilder.withfiles'  => false
 ]);
@@ -152,11 +152,11 @@ c::set('staticbuilder.uglyurls', true);
 
 ### `staticbuilder.extension`
 
-Extension for pages.
+Extension for pages. Defaults to adding a `/index.html` suffix.
 
 ```php
-c::set('staticbuilder.extension', '.html');       // my/page.html
 c::set('staticbuilder.extension', '/index.html'); // my/page/index.html
+c::set('staticbuilder.extension', '.html');       // my/page.html
 ```
 
 ### `staticbuilder.filter`
