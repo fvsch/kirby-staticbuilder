@@ -13,6 +13,8 @@ StaticBuilder requires Kirby 2.3.1 or later.
 Installation
 ------------
 
+Important: after installing the plugin, you will need to enable it (ideally, for local development only)!
+
 There are 3 different ways to install this plugin: the classic way (downloading a zip), with Kirby CLI, or with Composer. If you’re not sure what method to use, pick the classic install.
 
 ### Classic install
@@ -20,8 +22,6 @@ There are 3 different ways to install this plugin: the classic way (downloading 
 1. [Download a ZIP of the latest release](https://github.com/fvsch/kirby-staticbuilder/releases/latest).
 2. Unzip it, and rename the folder to `staticbuilder`.
 3. Put that folder in your project’s `site/plugins` folder.
-
-Now skip to the “Activation” section.
 
 ### Kirby CLI install
 
@@ -48,8 +48,8 @@ $kirby = kirby();
 ```
 
 
-Activation
-----------
+Enabling the plugin
+-------------------
 
 Enabling this plugin takes two lines of PHP, but we’re going to take a detour first because you probably *don’t want to enable this plugin on a live website*.
 
@@ -71,14 +71,18 @@ Then in this domain-specific config file, add:
 <?php
 // Enable Kirby StaticBuilder locally
 c::set('staticbuilder', true);
-
 // StaticBuilder requires Kirby’s cache to be disabled
 c::set('cache', false);
 ```
 
-If you installed the plugin with Composer, add this line:
+If you installed the plugin with Composer, use this config instead:
 
 ```php
+<?php
+// Enable Kirby StaticBuilder locally
+c::set('staticbuilder', true);
+// StaticBuilder requires Kirby’s cache to be disabled
+c::set('cache', false);
 // Enable routes for the StaticBuilder plugin
 Kirby\StaticBuilder\Controller::register();
 ```

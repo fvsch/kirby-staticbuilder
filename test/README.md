@@ -5,8 +5,9 @@ This folder contains a Kirby instance for testing the Kirby StaticBuilder plugin
 ## Usage
 
 1. Clone `https://github.com/fvsch/kirby-staticbuilder`
-1. In `kirby-staticbuilder/test`, run `composer install`
-2. Load either `starterkit/index.php/staticbuilder/` or `langkit/index.php/staticbuilder/` to make a test build
+2. In `kirby-staticbuilder/test`, run `composer install`
+3. Start a test server with `php --server localhost:8000` (PHP 5.6+ recommended)
+4. Load either `http://localhost:8000/starterkit/index.php/staticbuilder/` or `http://localhost:8000/langkit/index.php/staticbuilder/` to make a test build
 
 ## Licensing information
 

@@ -13,29 +13,33 @@ class Controller
 
     /**
      * Register StaticBuilder's routes
+     * Returns a string with the current status
+     * @return string
      */
     static function register()
     {
-        // The plugin must be enabled in config to be able to run,
-        // which allows enabling it only for a local dev environment.
-        if (static::$registered === false && C::get('staticbuilder') === true) {
-            $kirby = kirby();
-            if (!class_exists('Kirby\\Registry')) {
-                throw new Exception('Twig plugin requires Kirby 2.3 or higher. Current version: ' . $kirby->version());
-            }
-            $kirby->set('route', [
-                'pattern' => 'staticbuilder',
-                'action' => 'Kirby\\StaticBuilder\\Controller::siteAction',
-                'method' => 'GET|POST'
-            ]);
-            $kirby->set('route', [
-                'pattern' => 'staticbuilder/(:all)',
-                'action' => 'Kirby\\StaticBuilder\\Controller::pageAction',
-                'method' => 'GET|POST'
-            ]);
-            static::$registered = true;
+        if (static::$registered) {
+            return 'StaticBuilder is already enabled';
         }
-        return static::$registered;
+        if (!C::get('staticbuilder', false)) {
+            return 'StaticBuilder does not seem to be enabled in your config. See https://github.com/fvsch/kirby-staticbuilder/blob/master/doc/install.md for instructions.';
+        }
+        $kirby = kirby();
+        if (!class_exists('Kirby\\Registry')) {
+            throw new Exception('Twig plugin requires Kirby 2.3 or higher. Current version: ' . $kirby->version());
+        }
+        $kirby->set('route', [
+            'pattern' => 'staticbuilder',
+            'action' => 'Kirby\\StaticBuilder\\Controller::siteAction',
+            'method' => 'GET|POST'
+        ]);
+        $kirby->set('route', [
+            'pattern' => 'staticbuilder/(:all)',
+            'action' => 'Kirby\\StaticBuilder\\Controller::pageAction',
+            'method' => 'GET|POST'
+        ]);
+        static::$registered = true;
+        return 'Enabled StaticBuilder routes.';
     }
 
     /**
