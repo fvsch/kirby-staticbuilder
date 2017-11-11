@@ -1,0 +1,25 @@
+## 3.0 CHANGELOG
+
+Namespace changes:
+
+- Namespace change from Kirby\StaticBuilder to KirbyStaticBuilder
+- Class Kirby\StaticBuilder\Controller renamed to KirbyStaticBuilder\Plugin
+    - Method Kirby\StaticBuilder\Controller::register now KirbyStaticBuilder\Plugin::register
+    - Method Kirby\StaticBuilder\Controller::defaultFilter now KirbyStaticBuilder\Plugin::defaultFilter
+
+Configuration changes:
+
+- Default URL strategy is now to use relative URLs ('./')
+- Outputdir can now be any *relative* path; some basic checks are in place to avoid overwriting Kirby's standard folders, but please be careful if changing this option!
+- Default page extension is now '/index.html' (writing a page at '[outputdir]/page/url/index.html')
+
+Bugfixes:
+
+- Probably fixed, we need to check: https://github.com/fvsch/kirby-staticbuilder/issues/24
+-
+
+## TODO:
+
+- https://github.com/fvsch/kirby-staticbuilder/issues/27
+- Have a look at: https://github.com/fvsch/kirby-staticbuilder/issues/31
+- MAYBE: https://github.com/fvsch/kirby-staticbuilder/issues/11

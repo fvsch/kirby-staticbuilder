@@ -99,7 +99,7 @@ c::set('staticbuilder.filter', function($page) {
     if ($page->template() == 'article' && $page->isInvisible()) {
         return false;
     }
-    return Kirby\StaticBuilder\Builder::defaultFilter($page);
+    return KirbyStaticBuilder\Plugin::defaultFilter($page);
 });
 ```
 

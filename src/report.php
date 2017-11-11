@@ -33,7 +33,8 @@ function statusText($status) {
         'missing'   => 'Not generated',
         'generated' => 'Done',
         'done'      => 'Done',
-        'ignore'    => 'Skipped'
+        'ignore'    => 'Skipped',
+        'error'     => 'Error while building'
     ];
     if (array_key_exists($status, $plain)) {
         return $plain[$status];

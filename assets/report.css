@@ -152,6 +152,9 @@ button.header-btn:focus {
 .results tr.ignore {
   background-color: #fAf6f6;
 }
+.results tr.error {
+  background-color: #f35f6f;
+}
 .results tr > :first-child {
   width: 42%;
 }

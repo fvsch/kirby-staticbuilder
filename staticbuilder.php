@@ -7,8 +7,8 @@
 
 // Using kirby’s autoloader helper
 load([
-    'kirby\\staticbuilder\\builder'    => __DIR__ . '/src/Builder.php',
-    'kirby\\staticbuilder\\controller' => __DIR__ . '/src/Controller.php'
+    'kirbystaticbuilder\\builder' => __DIR__ . '/src/Builder.php',
+    'kirbystaticbuilder\\plugin'  => __DIR__ . '/src/Plugin.php'
 ]);
 
-Kirby\StaticBuilder\Controller::register();
+KirbyStaticBuilder\Plugin::register();
